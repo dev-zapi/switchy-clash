@@ -1,0 +1,5 @@
+<!-- Simple SVG icon for "on" state - will be converted to PNG -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="128" height="128">
+  <circle cx="64" cy="64" r="56" fill="#3b82f6" />
+  <path d="M40 64 L58 82 L88 48" stroke="white" stroke-width="10" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>

@@ -358,7 +358,7 @@
 </script>
 
 <div class="min-h-screen bg-[var(--color-bg)] text-[var(--color-text)]">
-	<div class="max-w-[800px] mx-auto px-4 py-6">
+	<div class="max-w-[800px] mx-auto px-6 py-8">
 		<!-- Header -->
 		<header class="flex items-center justify-between mb-8">
 			<h1 class="text-2xl font-semibold text-[var(--color-text)]">
@@ -403,7 +403,7 @@
 				{:else}
 					<div class="space-y-3">
 						{#each configs as config (config.id)}
-							<div class="bg-[var(--color-bg-secondary)] rounded-xl border border-[var(--color-border)] p-4 transition-all hover:border-[var(--color-primary)]/50">
+							<div class="bg-[var(--color-bg-secondary)] rounded-xl border border-[var(--color-border)] p-5 transition-all hover:border-[var(--color-primary)]/50">
 								<div class="flex items-start justify-between">
 									<div class="flex items-start gap-3">
 										<span class="text-2xl" title="Configuration icon">{config.emoji}</span>
@@ -669,7 +669,7 @@
 			{/if}
 
 			<!-- Global Bypass List Section -->
-			<section>
+			<section class="mb-8">
 				<h2 class="text-lg font-medium text-[var(--color-text)] mb-4">Proxy Bypass List (Global Default)</h2>
 				<div class="bg-[var(--color-bg-secondary)] rounded-xl border border-[var(--color-border)] p-6">
 					<label for="global-bypass" class="block text-sm font-medium text-[var(--color-text-secondary)] mb-1.5">

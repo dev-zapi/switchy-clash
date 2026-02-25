@@ -359,25 +359,25 @@
 <!-- ============================================ -->
 <!-- Main Container -->
 <!-- ============================================ -->
-<div class="w-[420px] max-h-[550px] overflow-y-auto bg-[var(--color-bg-primary)] text-[var(--color-text-primary)] font-sans">
+<div class="w-[420px] max-h-[550px] overflow-y-auto bg-[var(--color-bg)] text-[var(--color-text)] font-sans">
   
   <!-- Loading State -->
   {#if isLoading}
     <div class="flex items-center justify-center h-40">
-      <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-[var(--color-accent)]"></div>
+      <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-[var(--color-primary)]"></div>
     </div>
   
   <!-- No Config State -->
   {:else if !hasConfigs}
     <div class="flex flex-col items-center justify-center p-8 text-center">
       <div class="text-4xl mb-4">⚙️</div>
-      <h2 class="text-lg font-semibold mb-2 text-[var(--color-text-primary)]">No Configuration</h2>
+      <h2 class="text-lg font-semibold mb-2 text-[var(--color-text)]">No Configuration</h2>
       <p class="text-sm text-[var(--color-text-secondary)] mb-4">
         Please configure a Clash proxy to get started.
       </p>
       <button
         onclick={openSettings}
-        class="px-4 py-2 bg-[var(--color-accent)] text-white rounded-lg hover:opacity-90 transition-opacity text-sm font-medium"
+        class="px-4 py-2 bg-[var(--color-primary)] text-white rounded-lg hover:bg-[var(--color-primary-hover)] transition-colors text-sm font-medium"
       >
         Open Settings
       </button>
@@ -388,15 +388,15 @@
     <!-- ============================================ -->
     <!-- Row 1: Header -->
     <!-- ============================================ -->
-    <header class="sticky top-0 z-10 bg-[var(--color-bg-primary)] border-b border-[var(--color-border)] p-4">
+    <header class="sticky top-0 z-10 bg-[var(--color-bg)] border-b border-[var(--color-border)] px-5 py-4">
       <div class="flex items-center justify-between mb-2">
         <!-- Left: Version Info -->
         <div class="flex items-center gap-2">
-          <span class="text-lg font-bold text-[var(--color-text-primary)]">
+          <span class="text-lg font-bold text-[var(--color-text)]">
             Clash {version?.version || ''}
           </span>
           {#if getVersionBadge()}
-            <span class="px-2 py-0.5 text-xs bg-[var(--color-accent)]/10 text-[var(--color-accent)] rounded-full font-medium">
+            <span class="px-2 py-0.5 text-xs bg-[var(--color-primary)]/10 text-[var(--color-primary)] rounded-full font-medium">
               {getVersionBadge()}
             </span>
           {/if}
@@ -410,7 +410,7 @@
             disabled={isTogglingProxy}
             class="p-2 rounded-lg transition-colors {isProxyEnabled 
               ? 'bg-green-500/10 text-green-500 hover:bg-green-500/20' 
-              : 'bg-[var(--color-bg-secondary)] text-[var(--color-text-secondary)] hover:bg-[var(--color-hover)]'}"
+              : 'bg-[var(--color-bg-secondary)] text-[var(--color-text-secondary)] hover:bg-[var(--color-bg-tertiary)]'}"
             title={isProxyEnabled ? 'Disable Proxy' : 'Enable Proxy'}
           >
             {#if isTogglingProxy}
@@ -423,7 +423,7 @@
           <!-- Settings -->
           <button
             onclick={openSettings}
-            class="p-2 rounded-lg bg-[var(--color-bg-secondary)] text-[var(--color-text-secondary)] hover:bg-[var(--color-hover)] transition-colors"
+            class="p-2 rounded-lg bg-[var(--color-bg-secondary)] text-[var(--color-text-secondary)] hover:bg-[var(--color-bg-tertiary)] transition-colors"
             title="Settings"
           >
             ⚙️
@@ -432,7 +432,7 @@
           <!-- Dashboard -->
           <button
             onclick={openDashboard}
-            class="p-2 rounded-lg bg-[var(--color-bg-secondary)] text-[var(--color-text-secondary)] hover:bg-[var(--color-hover)] transition-colors"
+            class="p-2 rounded-lg bg-[var(--color-bg-secondary)] text-[var(--color-text-secondary)] hover:bg-[var(--color-bg-tertiary)] transition-colors"
             title="Open Dashboard"
           >
             📊
@@ -441,7 +441,7 @@
           <!-- Theme Toggle -->
           <button
             onclick={toggleTheme}
-            class="p-2 rounded-lg bg-[var(--color-bg-secondary)] text-[var(--color-text-secondary)] hover:bg-[var(--color-hover)] transition-colors"
+            class="p-2 rounded-lg bg-[var(--color-bg-secondary)] text-[var(--color-text-secondary)] hover:bg-[var(--color-bg-tertiary)] transition-colors"
             title="Toggle Theme ({theme})"
           >
             {getThemeIcon()}
@@ -455,7 +455,7 @@
           <select
             value={activeConfigId || ''}
             onchange={(e) => switchConfig(e.currentTarget.value)}
-            class="w-full px-3 py-2 text-sm bg-[var(--color-bg-secondary)] border border-[var(--color-border)] rounded-lg text-[var(--color-text-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--color-accent)]"
+            class="w-full px-3 py-2 text-sm bg-[var(--color-bg-secondary)] border border-[var(--color-border)] rounded-lg text-[var(--color-text)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
           >
             {#each configs as config}
               <option value={config.id}>{config.emoji} {config.name}</option>
@@ -475,7 +475,7 @@
     <!-- ============================================ -->
     <!-- Row 2: Rule Match -->
     <!-- ============================================ -->
-    <section class="p-4 border-b border-[var(--color-border)]">
+    <section class="px-5 py-4 border-b border-[var(--color-border)]">
       <div class="grid grid-cols-2 gap-4">
         <!-- Left: Current Tab Info -->
         <div>
@@ -497,7 +497,7 @@
         <div class="text-right">
           {#if matchedConnection}
             <div class="mb-1">
-              <span class="text-xs px-2 py-1 bg-[var(--color-accent)]/10 text-[var(--color-accent)] rounded">
+              <span class="text-xs px-2 py-1 bg-[var(--color-primary)]/10 text-[var(--color-primary)] rounded">
                 {matchedConnection.rule}
               </span>
             </div>
@@ -506,7 +506,7 @@
             </div>
             <div class="flex items-center justify-end gap-1 text-sm">
               <span>🚀</span>
-              <span class="font-medium text-[var(--color-text-primary)]">
+              <span class="font-medium text-[var(--color-text)]">
                 {matchedConnection.chains?.[0] || 'Direct'}
               </span>
               {#if matchedConnection.chains && matchedConnection.chains.length > 0}
@@ -530,13 +530,13 @@
     <!-- ============================================ -->
     <!-- Row 3: Proxy Groups -->
     <!-- ============================================ -->
-    <section class="p-4">
+    <section class="px-5 py-4 pb-5">
       <div class="flex items-center justify-between mb-3">
-        <h3 class="text-sm font-semibold text-[var(--color-text-primary)]">Proxy Groups</h3>
+        <h3 class="text-sm font-semibold text-[var(--color-text)]">Proxy Groups</h3>
         <button
           onclick={fetchProxyGroups}
           disabled={isLoadingGroups}
-          class="text-xs px-2 py-1 rounded bg-[var(--color-bg-secondary)] text-[var(--color-text-secondary)] hover:bg-[var(--color-hover)] transition-colors"
+          class="text-xs px-2 py-1 rounded bg-[var(--color-bg-secondary)] text-[var(--color-text-secondary)] hover:bg-[var(--color-bg-tertiary)] transition-colors"
         >
           {isLoadingGroups ? '⟳' : '🔄'} Refresh
         </button>
@@ -565,14 +565,14 @@
                     📡
                   {/if}
                 </span>
-                <span class="text-xs font-medium text-[var(--color-text-primary)] truncate">
+                <span class="text-xs font-medium text-[var(--color-text)] truncate">
                   {group.name}
                 </span>
               </div>
               <button
                 onclick={() => testGroupLatency(group.name)}
                 disabled={testingLatencyGroups.has(group.name)}
-                class="text-xs p-1 rounded hover:bg-[var(--color-hover)] transition-colors {testingLatencyGroups.has(group.name) ? 'opacity-50' : ''}"
+                class="text-xs p-1 rounded hover:bg-[var(--color-bg-tertiary)] transition-colors {testingLatencyGroups.has(group.name) ? 'opacity-50' : ''}"
                 title="Test Latency"
               >
                 {testingLatencyGroups.has(group.name) ? '⏳' : '⚡'}
@@ -585,7 +585,7 @@
                 value={currentNodeName}
                 onchange={(e) => switchProxyNode(group.name, e.currentTarget.value)}
                 disabled={switchingNodes.has(group.name)}
-                class="w-full px-2 py-1.5 text-xs bg-[var(--color-bg-primary)] border border-[var(--color-border)] rounded text-[var(--color-text-primary)] focus:outline-none focus:ring-1 focus:ring-[var(--color-accent)] disabled:opacity-50"
+                class="w-full px-2 py-1.5 text-xs bg-[var(--color-bg)] border border-[var(--color-border)] rounded text-[var(--color-text)] focus:outline-none focus:ring-1 focus:ring-[var(--color-primary)] disabled:opacity-50"
               >
                 {#each group.all || [] as nodeName}
                   {@const delay = getNodeLatency(nodeName)}
@@ -615,7 +615,7 @@
                   <button
                     onclick={() => testNodeLatency(currentNodeName)}
                     disabled={testingLatencyNodes.has(currentNodeName)}
-                    class="text-xs p-1 rounded hover:bg-[var(--color-hover)] transition-colors"
+                    class="text-xs p-1 rounded hover:bg-[var(--color-bg-tertiary)] transition-colors"
                   >
                     {testingLatencyNodes.has(currentNodeName) ? '⏳' : '⚡'}
                   </button>
@@ -627,7 +627,7 @@
             {#if group.all && group.all.length > 0}
               <button
                 onclick={() => toggleGroupExpanded(group.name)}
-                class="w-full mt-2 flex items-center justify-center gap-1 text-xs text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] transition-colors py-1"
+                class="w-full mt-2 flex items-center justify-center gap-1 text-xs text-[var(--color-text-secondary)] hover:text-[var(--color-text)] transition-colors py-1"
               >
                 <span>{expandedGroups.has(group.name) ? '▲' : '▼'}</span>
                 <span>{expandedGroups.has(group.name) ? 'Hide' : 'Show'} {group.all.length} nodes</span>
@@ -642,8 +642,8 @@
                       onclick={() => switchProxyNode(group.name, nodeName)}
                       disabled={isSelected || switchingNodes.has(group.name)}
                       class="w-full flex items-center justify-between px-2 py-1.5 text-xs rounded transition-colors {isSelected 
-                        ? 'bg-[var(--color-accent)]/10 text-[var(--color-accent)]' 
-                        : 'hover:bg-[var(--color-hover)] text-[var(--color-text-secondary)]'}"
+                        ? 'bg-[var(--color-primary)]/10 text-[var(--color-primary)]' 
+                        : 'hover:bg-[var(--color-bg-tertiary)] text-[var(--color-text-secondary)]'}"
                     >
                       <span class="truncate flex-1 text-left">{nodeName}</span>
                       <div class="flex items-center gap-1">
@@ -663,7 +663,7 @@
                                 testNodeLatency(nodeName);
                               }
                             }}
-                            class="p-0.5 rounded hover:bg-[var(--color-hover)] cursor-pointer {testingLatencyNodes.has(nodeName) ? 'opacity-50 pointer-events-none' : ''}"
+                            class="p-0.5 rounded hover:bg-[var(--color-bg-tertiary)] cursor-pointer {testingLatencyNodes.has(nodeName) ? 'opacity-50 pointer-events-none' : ''}"
                           >
                             {testingLatencyNodes.has(nodeName) ? '⏳' : '⚡'}
                           </span>
@@ -708,31 +708,5 @@
   :global(*::-webkit-scrollbar-thumb) {
     background-color: var(--color-border);
     border-radius: 3px;
-  }
-  
-  /* CSS Custom Properties for theming */
-  :global(:root) {
-    --color-bg-primary: #ffffff;
-    --color-bg-secondary: #f3f4f6;
-    --color-text-primary: #111827;
-    --color-text-secondary: #6b7280;
-    --color-border: #e5e7eb;
-    --color-hover: #e5e7eb;
-    --color-accent: #3b82f6;
-    --color-success: #10b981;
-    --color-danger: #ef4444;
-  }
-  
-  :global([data-theme="dark"]),
-  :global(.dark) {
-    --color-bg-primary: #1f2937;
-    --color-bg-secondary: #111827;
-    --color-text-primary: #f9fafb;
-    --color-text-secondary: #9ca3af;
-    --color-border: #374151;
-    --color-hover: #374151;
-    --color-accent: #60a5fa;
-    --color-success: #34d399;
-    --color-danger: #f87171;
   }
 </style>

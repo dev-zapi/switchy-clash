@@ -6,8 +6,12 @@ class StorageService {
   private async get<K extends keyof ExtensionStorage>(
     key: K,
   ): Promise<ExtensionStorage[K]> {
-    return new Promise((resolve) => {
+    return new Promise((resolve, reject) => {
       chrome.storage.local.get(key, (result: Record<string, unknown>) => {
+        if (chrome.runtime.lastError) {
+          reject(new Error(chrome.runtime.lastError.message));
+          return;
+        }
         resolve((result[key] as ExtensionStorage[K]) ?? DEFAULT_STORAGE[key]);
       });
     });
@@ -17,8 +21,14 @@ class StorageService {
     key: K,
     value: ExtensionStorage[K],
   ): Promise<void> {
-    return new Promise((resolve) => {
-      chrome.storage.local.set({ [key]: value }, resolve);
+    return new Promise((resolve, reject) => {
+      chrome.storage.local.set({ [key]: value }, () => {
+        if (chrome.runtime.lastError) {
+          reject(new Error(chrome.runtime.lastError.message));
+          return;
+        }
+        resolve();
+      });
     });
   }
 

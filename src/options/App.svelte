@@ -1,6 +1,8 @@
 <script lang="ts">
+	import { onMount } from 'svelte';
 	import { ClashAPI } from '$lib/services/clash-api';
 	import { storage } from '$lib/services/storage';
+	import { ensureHostPermission, isLocalhostHost } from '$lib/services/permissions';
 	import type { ExtensionConfig, ThemeMode } from '$lib/types';
 	import { DEFAULT_BYPASS_LIST, DEFAULT_CONFIG } from '$lib/types';
 	import { applyTheme, generateId, initTheme } from '$lib/utils';
@@ -25,7 +27,7 @@
 	let hasConfigs = $derived(configs.length > 0);
 
 	// Initialize on mount
-	$effect(() => {
+	onMount(() => {
 		loadData();
 	});
 
@@ -115,6 +117,15 @@
 			return;
 		}
 
+		// Request host permission for non-localhost hosts
+		if (!isLocalhostHost(editingConfig.host)) {
+			const granted = await ensureHostPermission(editingConfig.host);
+			if (!granted) {
+				showNotification(`Host permission denied for ${editingConfig.host}. The extension needs access to connect to this address.`, 'error');
+				return;
+			}
+		}
+
 		try {
 			const isNew = !configs.find(c => c.id === editingConfig!.id);
 			
@@ -135,6 +146,12 @@
 			}
 
 			await storage.setConfigs(configs);
+
+			// Set as active config if it's the first config or marked as default
+			if (isNew && (configs.length === 1 || editingConfig.isDefault)) {
+				await storage.setActiveConfigId(editingConfig.id);
+			}
+
 			showNotification(isNew ? 'Configuration added' : 'Configuration updated', 'success');
 			handleCancel();
 		} catch (error) {

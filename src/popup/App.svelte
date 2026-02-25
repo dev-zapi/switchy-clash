@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { onMount } from 'svelte';
   import { ClashAPI } from '$lib/services/clash-api';
   import { storage } from '$lib/services/storage';
   import type { ExtensionConfig, ClashVersion, ProxyNode, ProxyGroup, ThemeMode, Connection } from '$lib/types';
@@ -74,7 +75,7 @@
   // Effects
   // ============================================
   
-  $effect(() => {
+  onMount(() => {
     // Initialize on mount
     initializePopup();
   });

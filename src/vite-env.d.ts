@@ -7,4 +7,5 @@ declare namespace chrome {
   const action: any;
   const runtime: any;
   const tabs: any;
+  const permissions: any;
 }

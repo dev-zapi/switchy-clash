@@ -2,6 +2,7 @@
 import { ClashAPI } from '$lib/services/clash-api';
 import { storage } from '$lib/services/storage';
 import { ProxyService } from '$lib/services/proxy';
+import { hasHostPermission } from '$lib/services/permissions';
 import type { ExtensionConfig } from '$lib/types';
 
 // Message types for communication
@@ -51,6 +52,12 @@ async function enableProxy(): Promise<{ success: boolean; error?: string }> {
   const config = await storage.getActiveConfig();
   if (!config) {
     return { success: false, error: 'No active configuration' };
+  }
+
+  // Check host permission before connecting
+  const hasPermission = await hasHostPermission(config.host);
+  if (!hasPermission) {
+    return { success: false, error: `No permission to access ${config.host}. Please grant access in the extension settings.` };
   }
 
   try {
@@ -108,7 +115,7 @@ async function autoSwitch(): Promise<void> {
   // Priority 1: Check if active config is still available
   if (activeId) {
     const activeConfig = configs.find((c) => c.id === activeId);
-    if (activeConfig) {
+    if (activeConfig && await hasHostPermission(activeConfig.host)) {
       const api = getAPI(activeConfig);
       const available = await api.healthCheck();
       if (available) {
@@ -122,6 +129,7 @@ async function autoSwitch(): Promise<void> {
   // Priority 2: Try last used
   const sorted = [...configs].sort((a, b) => b.lastUsed - a.lastUsed);
   for (const config of sorted) {
+    if (!(await hasHostPermission(config.host))) continue;
     const api = getAPI(config);
     const available = await api.healthCheck();
     await storage.updateConfig(config.id, {
@@ -149,7 +157,7 @@ async function autoSwitch(): Promise<void> {
 chrome.runtime.onMessage.addListener(
   (
     request: MessageRequest,
-    _sender: chrome.runtime.MessageSender,
+    _sender: any,
     sendResponse: (response: MessageResponse) => void,
   ) => {
     const handler = async (): Promise<MessageResponse> => {

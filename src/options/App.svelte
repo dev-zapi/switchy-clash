@@ -187,6 +187,15 @@
 	async function handleTestConnection(): Promise<void> {
 		if (!editingConfig) return;
 
+		// Request host permission for non-localhost hosts before testing
+		if (!isLocalhostHost(editingConfig.host)) {
+			const granted = await ensureHostPermission(editingConfig.host);
+			if (!granted) {
+				testStatus = { message: `Host permission denied for ${editingConfig.host}`, type: 'error' };
+				return;
+			}
+		}
+
 		testStatus = { message: 'Testing connection...', type: 'info' };
 
 		try {

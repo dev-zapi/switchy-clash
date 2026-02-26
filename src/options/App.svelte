@@ -43,7 +43,7 @@
 				storage.getConfigs(),
 				storage.getThemeMode()
 			]);
-			configs = storedConfigs;
+			configs = Array.isArray(storedConfigs) ? storedConfigs : [];
 			themeMode = storedTheme;
 			
 			// Load global bypass list from first config or use default

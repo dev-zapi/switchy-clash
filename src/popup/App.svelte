@@ -111,7 +111,7 @@
         storage.getProxyEnabled()
       ]);
       
-      configs = allConfigs;
+      configs = Array.isArray(allConfigs) ? allConfigs : [];
       activeConfigId = activeId;
       theme = themeMode;
       isProxyEnabled = proxyEnabled;

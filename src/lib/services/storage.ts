@@ -34,7 +34,8 @@ class StorageService {
 
   // Configs
   async getConfigs(): Promise<ExtensionConfig[]> {
-    return this.get('configs');
+    const result = await this.get('configs');
+    return Array.isArray(result) ? result : [];
   }
 
   async setConfigs(configs: ExtensionConfig[]): Promise<void> {

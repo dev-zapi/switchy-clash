@@ -21,8 +21,12 @@ class StorageService {
     key: K,
     value: ExtensionStorage[K],
   ): Promise<void> {
+    // Deep-clone to strip Svelte 5 $state Proxy wrappers.
+    // chrome.storage.local.set() uses structured clone internally,
+    // which may serialize Proxy-wrapped arrays as plain objects.
+    const plainValue = JSON.parse(JSON.stringify(value));
     return new Promise((resolve, reject) => {
-      chrome.storage.local.set({ [key]: value }, () => {
+      chrome.storage.local.set({ [key]: plainValue }, () => {
         if (chrome.runtime.lastError) {
           reject(new Error(chrome.runtime.lastError.message));
           return;

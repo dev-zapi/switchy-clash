@@ -4,6 +4,7 @@ import { storage } from '$lib/services/storage';
 import { ProxyService } from '$lib/services/proxy';
 import { hasHostPermission } from '$lib/services/permissions';
 import type { ExtensionConfig } from '$lib/types';
+import { DEFAULT_BYPASS_LIST } from '$lib/types';
 
 // Message types for communication
 export interface MessageRequest {
@@ -64,8 +65,13 @@ async function enableProxy(): Promise<{ success: boolean; error?: string }> {
     const api = getAPI(config);
     const clashConfig = await api.getConfig();
     const proxyPort = ProxyService.getProxyPort(clashConfig);
-    // Use the config host as the proxy host (the Clash instance host)
-    await ProxyService.enable(config.host, proxyPort, config.bypassList);
+    // Dynamically add the Clash API host to bypass list so API traffic
+    // is not routed through the proxy it controls
+    const bypassList = [...(config.bypassList ?? DEFAULT_BYPASS_LIST)];
+    if (!bypassList.includes(config.host)) {
+      bypassList.push(config.host);
+    }
+    await ProxyService.enable(config.host, proxyPort, bypassList);
     await storage.setProxyEnabled(true);
     await updateIcon(true);
     // Update config status

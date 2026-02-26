@@ -567,61 +567,65 @@
       </div>
       
       <!-- 2-Column Grid -->
-      <div class="grid grid-cols-2 gap-3">
+      <div class="grid grid-cols-2 gap-2">
         {#each proxyGroups as group}
           {@const currentNodeName = group.now}
           {@const currentNodeLatency = currentNodeName ? getNodeLatency(currentNodeName) : null}
           {@const nodeCount = getGroupNodeCount(group)}
           
-          <button
-            onclick={() => toggleGroupExpanded(group.name)}
-            class="bg-[var(--color-bg-secondary)] rounded-lg px-3 py-2.5 border border-[var(--color-border)] text-left hover:border-[var(--color-primary)]/30 transition-colors cursor-pointer"
+          <div
+            class="relative bg-[var(--color-bg-secondary)] rounded-lg px-2.5 py-2 shadow-sm hover:shadow-md transition-shadow cursor-pointer"
           >
-            <!-- Row 1: Group Name -->
-            <div class="text-sm font-semibold text-[var(--color-text)] truncate">
-              {group.name}
-            </div>
-            
-            <!-- Row 2: Type + Node Count -->
-            <div class="text-xs text-[var(--color-text-secondary)] mt-0.5">
-              {getGroupTypeLabel(group.type)} ({nodeCount.available}/{nodeCount.total})
-            </div>
-            
-            <!-- Row 3: Current Node + Latency -->
-            {#if currentNodeName}
-              <div class="flex items-center justify-between mt-1.5">
-                <span class="text-xs text-[var(--color-text-secondary)] truncate flex-1 flex items-center gap-1">
-                  <span class="opacity-60">◉</span>
-                  {currentNodeName}
-                </span>
-                {#if testingLatencyGroups.has(group.name) || testingLatencyNodes.has(currentNodeName)}
-                  <span class="animate-spin text-xs ml-1 shrink-0">⏳</span>
-                {:else if currentNodeLatency !== null && currentNodeLatency > 0}
-                  <span class="text-xs font-medium ml-1 shrink-0 {getDelayColor(currentNodeLatency)}">
-                    {currentNodeLatency}
-                  </span>
-                {:else}
-                  <span
-                    role="button"
-                    tabindex="0"
-                    onclick={(e) => {
-                      e.stopPropagation();
-                      testGroupLatency(group.name);
-                    }}
-                    onkeydown={(e) => {
-                      if (e.key === 'Enter' || e.key === ' ') {
-                        e.stopPropagation();
-                        testGroupLatency(group.name);
-                      }
-                    }}
-                    class="text-xs ml-1 shrink-0 hover:opacity-80"
-                  >
-                    ⚡
-                  </span>
-                {/if}
+            <!-- Speed Test Button (top-right corner) -->
+            <button
+              onclick={(e) => {
+                e.stopPropagation();
+                testGroupLatency(group.name);
+              }}
+              disabled={testingLatencyGroups.has(group.name)}
+              class="absolute top-1.5 right-1.5 text-xs p-0.5 rounded hover:bg-[var(--color-bg-tertiary)] text-[var(--color-text-muted)] hover:text-[var(--color-primary)] transition-colors"
+              title="Test group latency"
+            >
+              {#if testingLatencyGroups.has(group.name)}
+                <span class="animate-spin inline-block">⏳</span>
+              {:else}
+                ⚡
+              {/if}
+            </button>
+
+            <!-- Clickable area for expanding group -->
+            <button
+              onclick={() => toggleGroupExpanded(group.name)}
+              class="w-full text-left"
+            >
+              <!-- Row 1: Group Name -->
+              <div class="text-sm font-semibold text-[var(--color-text)] truncate pr-5">
+                {group.name}
               </div>
-            {/if}
-          </button>
+              
+              <!-- Row 2: Type + Node Count -->
+              <div class="text-xs text-[var(--color-text-secondary)]">
+                {getGroupTypeLabel(group.type)} ({nodeCount.available}/{nodeCount.total})
+              </div>
+              
+              <!-- Row 3: Current Node + Latency -->
+              {#if currentNodeName}
+                <div class="flex items-center justify-between mt-1">
+                  <span class="text-xs text-[var(--color-text-secondary)] truncate flex-1 flex items-center gap-1">
+                    <span class="opacity-60">◉</span>
+                    {currentNodeName}
+                  </span>
+                  {#if testingLatencyGroups.has(group.name) || testingLatencyNodes.has(currentNodeName)}
+                    <span class="animate-spin text-xs ml-1 shrink-0">⏳</span>
+                  {:else if currentNodeLatency !== null && currentNodeLatency > 0}
+                    <span class="text-xs font-medium ml-1 shrink-0 {getDelayColor(currentNodeLatency)}">
+                      {currentNodeLatency}
+                    </span>
+                  {/if}
+                </div>
+              {/if}
+            </button>
+          </div>
         {/each}
       </div>
       

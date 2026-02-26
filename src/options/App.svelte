@@ -411,7 +411,7 @@
 					<h2 class="text-lg font-medium text-[var(--color-text)]">Configurations</h2>
 					<button
 						onclick={handleAddNew}
-						class="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-medium text-white bg-[var(--color-primary)] hover:bg-[var(--color-primary-hover)] rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[var(--color-primary)]"
+						class="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-medium text-white bg-[var(--color-primary)] hover:bg-[var(--color-primary-hover)] rounded-lg transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[var(--color-primary)] focus-visible:ring-offset-[var(--color-bg)]"
 					>
 						<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 							<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
@@ -545,7 +545,7 @@
 									type="text"
 									bind:value={editingConfig.name}
 									placeholder="e.g., Home Server"
-									class="w-full px-3 py-2 bg-[var(--color-bg)] border border-[var(--color-border)] rounded-lg text-[var(--color-text)] placeholder:text-[var(--color-text-muted)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:border-transparent transition-all"
+									class="w-full px-3 py-2 bg-[var(--color-bg)] border border-[var(--color-border)] rounded-lg text-[var(--color-text)] placeholder:text-[var(--color-text-muted)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary)] focus:border-transparent transition-all"
 								/>
 								{#if formErrors.name}
 									<p class="mt-1 text-xs text-[var(--color-danger)]">{formErrors.name}</p>
@@ -580,7 +580,7 @@
 									type="text"
 									bind:value={editingConfig.host}
 									placeholder="127.0.0.1"
-									class="w-full px-3 py-2 bg-[var(--color-bg)] border border-[var(--color-border)] rounded-lg text-[var(--color-text)] placeholder:text-[var(--color-text-muted)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:border-transparent transition-all"
+									class="w-full px-3 py-2 bg-[var(--color-bg)] border border-[var(--color-border)] rounded-lg text-[var(--color-text)] placeholder:text-[var(--color-text-muted)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary)] focus:border-transparent transition-all"
 								/>
 								{#if formErrors.host}
 									<p class="mt-1 text-xs text-[var(--color-danger)]">{formErrors.host}</p>
@@ -599,7 +599,7 @@
 									min="1"
 									max="65535"
 									placeholder="9090"
-									class="w-full px-3 py-2 bg-[var(--color-bg)] border border-[var(--color-border)] rounded-lg text-[var(--color-text)] placeholder:text-[var(--color-text-muted)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:border-transparent transition-all"
+									class="w-full px-3 py-2 bg-[var(--color-bg)] border border-[var(--color-border)] rounded-lg text-[var(--color-text)] placeholder:text-[var(--color-text-muted)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary)] focus:border-transparent transition-all"
 								/>
 								{#if formErrors.port}
 									<p class="mt-1 text-xs text-[var(--color-danger)]">{formErrors.port}</p>
@@ -616,7 +616,7 @@
 									type="password"
 									bind:value={editingConfig.secret}
 									placeholder="API secret token"
-									class="w-full px-3 py-2 bg-[var(--color-bg)] border border-[var(--color-border)] rounded-lg text-[var(--color-text)] placeholder:text-[var(--color-text-muted)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:border-transparent transition-all"
+									class="w-full px-3 py-2 bg-[var(--color-bg)] border border-[var(--color-border)] rounded-lg text-[var(--color-text)] placeholder:text-[var(--color-text-muted)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary)] focus:border-transparent transition-all"
 								/>
 							</div>
 
@@ -634,7 +634,7 @@
 									}}
 									rows="4"
 									placeholder="localhost&#10;127.0.0.1&#10;*.local&#10;<local>"
-									class="w-full px-3 py-2 bg-[var(--color-bg)] border border-[var(--color-border)] rounded-lg text-[var(--color-text)] placeholder:text-[var(--color-text-muted)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:border-transparent transition-all resize-none font-mono text-sm"
+									class="w-full px-3 py-2 bg-[var(--color-bg)] border border-[var(--color-border)] rounded-lg text-[var(--color-text)] placeholder:text-[var(--color-text-muted)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary)] focus:border-transparent transition-all resize-none font-mono text-sm"
 								></textarea>
 								<p class="mt-1 text-xs text-[var(--color-text-muted)]">
 									Domains/IPs that bypass the proxy. Common patterns: localhost, 127.0.0.1, *.local, &lt;local&gt;
@@ -647,7 +647,7 @@
 									<input
 										type="checkbox"
 										bind:checked={editingConfig.isDefault}
-										class="w-4 h-4 rounded border-[var(--color-border)] text-[var(--color-primary)] focus:ring-[var(--color-primary)] bg-[var(--color-bg)]"
+										class="w-4 h-4 rounded border-[var(--color-border)] text-[var(--color-primary)] focus-visible:ring-[var(--color-primary)] bg-[var(--color-bg)]"
 									/>
 									<span class="text-sm text-[var(--color-text)]">Set as default configuration</span>
 								</label>
@@ -675,7 +675,7 @@
 
 							<button
 								onclick={handleSave}
-								class="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-medium text-white bg-[var(--color-primary)] hover:bg-[var(--color-primary-hover)] rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[var(--color-primary)]"
+								class="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-medium text-white bg-[var(--color-primary)] hover:bg-[var(--color-primary-hover)] rounded-lg transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[var(--color-primary)] focus-visible:ring-offset-[var(--color-bg)]"
 							>
 								<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 									<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
@@ -706,7 +706,7 @@
 						value={globalBypassList.join('\n')}
 						oninput={handleGlobalBypassChange}
 						rows="6"
-						class="w-full px-3 py-2 bg-[var(--color-bg)] border border-[var(--color-border)] rounded-lg text-[var(--color-text)] placeholder:text-[var(--color-text-muted)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:border-transparent transition-all resize-none font-mono text-sm"
+						class="w-full px-3 py-2 bg-[var(--color-bg)] border border-[var(--color-border)] rounded-lg text-[var(--color-text)] placeholder:text-[var(--color-text-muted)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary)] focus:border-transparent transition-all resize-none font-mono text-sm"
 					></textarea>
 					<p class="mt-2 text-xs text-[var(--color-text-muted)]">
 						These patterns will be applied to all configurations. Changes are saved automatically.

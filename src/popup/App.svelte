@@ -456,7 +456,7 @@
           <select
             value={activeConfigId || ''}
             onchange={(e) => switchConfig(e.currentTarget.value)}
-            class="w-full px-3 py-2 text-sm bg-[var(--color-bg-secondary)] border border-[var(--color-border)] rounded-lg text-[var(--color-text)] focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
+            class="w-full px-3 py-2 text-sm bg-[var(--color-bg-secondary)] border border-[var(--color-border)] rounded-lg text-[var(--color-text)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary)]"
           >
             {#each configs as config}
               <option value={config.id}>{config.emoji} {config.name}</option>
@@ -586,7 +586,7 @@
                 value={currentNodeName}
                 onchange={(e) => switchProxyNode(group.name, e.currentTarget.value)}
                 disabled={switchingNodes.has(group.name)}
-                class="w-full px-2 py-1.5 text-xs bg-[var(--color-bg)] border border-[var(--color-border)] rounded text-[var(--color-text)] focus:outline-none focus:ring-1 focus:ring-[var(--color-primary)] disabled:opacity-50"
+                class="w-full px-2 py-1.5 text-xs bg-[var(--color-bg)] border border-[var(--color-border)] rounded text-[var(--color-text)] focus:outline-none focus-visible:ring-1 focus-visible:ring-[var(--color-primary)] disabled:opacity-50"
               >
                 {#each group.all || [] as nodeName}
                   {@const delay = getNodeLatency(nodeName)}

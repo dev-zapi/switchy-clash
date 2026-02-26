@@ -620,28 +620,7 @@
 								/>
 							</div>
 
-							<!-- Bypass List -->
-							<div class="md:col-span-2">
-								<label for="config-bypass" class="block text-sm font-medium text-[var(--color-text-secondary)] mb-1.5">
-									Bypass List (one per line)
-								</label>
-								<textarea
-									id="config-bypass"
-									value={editingConfig.bypassList?.join('\n') ?? ''}
-									oninput={(e) => {
-										const lines = e.currentTarget.value.split('\n').map(l => l.trim()).filter(l => l);
-										editingConfig!.bypassList = lines;
-									}}
-									rows="4"
-									placeholder="localhost&#10;127.0.0.1&#10;*.local&#10;<local>"
-									class="w-full px-3 py-2 bg-[var(--color-bg)] border border-[var(--color-border)] rounded-lg text-[var(--color-text)] placeholder:text-[var(--color-text-muted)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary)] focus:border-transparent transition-all resize-none font-mono text-sm"
-								></textarea>
-								<p class="mt-1 text-xs text-[var(--color-text-muted)]">
-									Domains/IPs that bypass the proxy. Common patterns: localhost, 127.0.0.1, *.local, &lt;local&gt;
-								</p>
-							</div>
-
-							<!-- Set as Default -->
+						<!-- Set as Default -->
 							<div class="md:col-span-2">
 								<label class="flex items-center gap-2 cursor-pointer">
 									<input
@@ -696,19 +675,19 @@
 
 			<!-- Global Bypass List Section -->
 			<section class="mb-8">
-				<h2 class="text-lg font-medium text-[var(--color-text)] mb-4">Proxy Bypass List (Global Default)</h2>
-				<div class="bg-[var(--color-bg-secondary)] rounded-xl border border-[var(--color-border)] p-6">
-					<label for="global-bypass" class="block text-sm font-medium text-[var(--color-text-secondary)] mb-1.5">
+				<h2 class="text-lg font-medium text-[var(--color-text)] mb-2">Proxy Bypass List</h2>
+				<div class="bg-[var(--color-bg-secondary)] rounded-xl border border-[var(--color-border)] p-3">
+					<label for="global-bypass" class="block text-sm font-medium text-[var(--color-text-secondary)] mb-1">
 						One per line:
 					</label>
 					<textarea
 						id="global-bypass"
 						value={globalBypassList.join('\n')}
 						oninput={handleGlobalBypassChange}
-						rows="6"
-						class="w-full px-3 py-2 bg-[var(--color-bg)] border border-[var(--color-border)] rounded-lg text-[var(--color-text)] placeholder:text-[var(--color-text-muted)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary)] focus:border-transparent transition-all resize-none font-mono text-sm"
+						rows="10"
+						class="w-full px-3 py-2 bg-[var(--color-bg)] border border-[var(--color-border)] rounded-lg text-[var(--color-text)] placeholder:text-[var(--color-text-muted)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary)] focus:border-transparent transition-all resize-y font-mono text-sm"
 					></textarea>
-					<p class="mt-2 text-xs text-[var(--color-text-muted)]">
+					<p class="mt-1 text-xs text-[var(--color-text-muted)]">
 						These patterns will be applied to all configurations. Changes are saved automatically.
 					</p>
 				</div>

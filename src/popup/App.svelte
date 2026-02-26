@@ -404,13 +404,13 @@
         </div>
         
         <!-- Right: Action Buttons -->
-        <div class="flex items-center gap-1">
+        <div class="flex items-center gap-2">
           <!-- Proxy Toggle -->
           <button
             onclick={toggleProxy}
             disabled={isTogglingProxy}
-            class="p-2 rounded-lg transition-colors {isProxyEnabled 
-              ? 'bg-green-500/10 text-green-500 hover:bg-green-500/20' 
+            class="p-2 rounded-lg border border-[var(--color-border)] transition-colors {isProxyEnabled 
+              ? 'bg-green-500/10 text-green-500 hover:bg-green-500/20 border-green-500/20' 
               : 'bg-[var(--color-bg-secondary)] text-[var(--color-text-secondary)] hover:bg-[var(--color-bg-tertiary)]'}"
             title={isProxyEnabled ? 'Disable Proxy' : 'Enable Proxy'}
           >
@@ -424,7 +424,7 @@
           <!-- Settings -->
           <button
             onclick={openSettings}
-            class="p-2 rounded-lg bg-[var(--color-bg-secondary)] text-[var(--color-text-secondary)] hover:bg-[var(--color-bg-tertiary)] transition-colors"
+            class="p-2 rounded-lg bg-[var(--color-bg-secondary)] text-[var(--color-text-secondary)] hover:bg-[var(--color-bg-tertiary)] border border-[var(--color-border)] transition-colors"
             title="Settings"
           >
             ⚙️
@@ -433,7 +433,7 @@
           <!-- Dashboard -->
           <button
             onclick={openDashboard}
-            class="p-2 rounded-lg bg-[var(--color-bg-secondary)] text-[var(--color-text-secondary)] hover:bg-[var(--color-bg-tertiary)] transition-colors"
+            class="p-2 rounded-lg bg-[var(--color-bg-secondary)] text-[var(--color-text-secondary)] hover:bg-[var(--color-bg-tertiary)] border border-[var(--color-border)] transition-colors"
             title="Open Dashboard"
           >
             📊
@@ -442,7 +442,7 @@
           <!-- Theme Toggle -->
           <button
             onclick={toggleTheme}
-            class="p-2 rounded-lg bg-[var(--color-bg-secondary)] text-[var(--color-text-secondary)] hover:bg-[var(--color-bg-tertiary)] transition-colors"
+            class="p-2 rounded-lg bg-[var(--color-bg-secondary)] text-[var(--color-text-secondary)] hover:bg-[var(--color-bg-tertiary)] border border-[var(--color-border)] transition-colors"
             title="Toggle Theme ({theme})"
           >
             {getThemeIcon()}
@@ -537,7 +537,7 @@
         <button
           onclick={fetchProxyGroups}
           disabled={isLoadingGroups}
-          class="text-xs px-2 py-1 rounded bg-[var(--color-bg-secondary)] text-[var(--color-text-secondary)] hover:bg-[var(--color-bg-tertiary)] transition-colors"
+          class="text-xs px-2 py-1 rounded bg-[var(--color-bg-secondary)] text-[var(--color-text-secondary)] hover:bg-[var(--color-bg-tertiary)] border border-[var(--color-border)] transition-colors"
         >
           {isLoadingGroups ? '⟳' : '🔄'} Refresh
         </button>

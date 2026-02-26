@@ -434,7 +434,7 @@
 									<div class="flex items-start gap-3">
 										<span class="text-2xl" title="Configuration icon">{config.emoji}</span>
 										<div>
-											<div class="flex items-center gap-2">
+								<div class="flex items-center gap-3">
 												<h3 class="font-medium text-[var(--color-text)]">
 													{config.name}
 												</h3>
@@ -485,7 +485,7 @@
 						<button
 							onclick={handleCheckAll}
 							disabled={isCheckingAll}
-							class="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-medium text-[var(--color-text)] bg-[var(--color-bg-tertiary)] hover:bg-[var(--color-border)] rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+							class="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-medium text-[var(--color-text)] bg-[var(--color-bg-tertiary)] hover:bg-[var(--color-border)] rounded-lg border border-[var(--color-border)] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
 						>
 							{#if isCheckingAll}
 								<svg class="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
@@ -502,7 +502,7 @@
 
 						<button
 							onclick={handleExport}
-							class="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-medium text-[var(--color-text)] bg-[var(--color-bg-tertiary)] hover:bg-[var(--color-border)] rounded-lg transition-colors"
+							class="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-medium text-[var(--color-text)] bg-[var(--color-bg-tertiary)] hover:bg-[var(--color-border)] rounded-lg border border-[var(--color-border)] transition-colors"
 						>
 							<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 								<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
@@ -510,7 +510,7 @@
 							Export
 						</button>
 
-						<label class="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-medium text-[var(--color-text)] bg-[var(--color-bg-tertiary)] hover:bg-[var(--color-border)] rounded-lg transition-colors cursor-pointer">
+						<label class="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-medium text-[var(--color-text)] bg-[var(--color-bg-tertiary)] hover:bg-[var(--color-border)] rounded-lg border border-[var(--color-border)] transition-colors cursor-pointer">
 							<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 								<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
 							</svg>
@@ -665,7 +665,7 @@
 						<div class="flex flex-wrap items-center gap-3">
 							<button
 								onclick={handleTestConnection}
-								class="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-medium text-[var(--color-text)] bg-[var(--color-bg-tertiary)] hover:bg-[var(--color-border)] rounded-lg transition-colors"
+								class="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-medium text-[var(--color-text)] bg-[var(--color-bg-tertiary)] hover:bg-[var(--color-border)] rounded-lg border border-[var(--color-border)] transition-colors"
 							>
 								<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 									<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />

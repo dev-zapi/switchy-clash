@@ -355,6 +355,29 @@
     if (!node) return null;
     return getLatestDelay(node.history);
   }
+
+  function getGroupNodeCount(group: ProxyGroup): { available: number; total: number } {
+    const total = group.all?.length || 0;
+    let available = 0;
+    for (const nodeName of group.all || []) {
+      const delay = getNodeLatency(nodeName);
+      if (delay !== null && delay > 0) {
+        available++;
+      }
+    }
+    return { available, total };
+  }
+
+  function getGroupTypeLabel(type: string): string {
+    switch (type) {
+      case 'Selector': return 'Selector';
+      case 'URLTest': return 'URLTest';
+      case 'Fallback': return 'Fallback';
+      case 'LoadBalance': return 'LoadBalance';
+      case 'Relay': return 'Relay';
+      default: return type;
+    }
+  }
 </script>
 
 <!-- ============================================ -->
@@ -548,137 +571,57 @@
         {#each proxyGroups as group}
           {@const currentNodeName = group.now}
           {@const currentNodeLatency = currentNodeName ? getNodeLatency(currentNodeName) : null}
+          {@const nodeCount = getGroupNodeCount(group)}
           
-          <div class="bg-[var(--color-bg-secondary)] rounded-lg p-3 border border-[var(--color-border)]">
-            <!-- Group Header -->
-            <div class="flex items-center justify-between mb-2">
-              <div class="flex items-center gap-1.5 min-w-0">
-                <span class="text-xs opacity-60">
-                  {#if group.type === 'Selector'}
-                    🔀
-                  {:else if group.type === 'URLTest'}
-                    📊
-                  {:else if group.type === 'Fallback'}
-                    🔄
-                  {:else if group.type === 'LoadBalance'}
-                    ⚖️
-                  {:else}
-                    📡
-                  {/if}
-                </span>
-                <span class="text-xs font-medium text-[var(--color-text)] truncate">
-                  {group.name}
-                </span>
-              </div>
-              <button
-                onclick={() => testGroupLatency(group.name)}
-                disabled={testingLatencyGroups.has(group.name)}
-                class="text-xs p-1 rounded hover:bg-[var(--color-bg-tertiary)] transition-colors {testingLatencyGroups.has(group.name) ? 'opacity-50' : ''}"
-                title="Test Latency"
-              >
-                {testingLatencyGroups.has(group.name) ? '⏳' : '⚡'}
-              </button>
+          <button
+            onclick={() => toggleGroupExpanded(group.name)}
+            class="bg-[var(--color-bg-secondary)] rounded-lg px-3 py-2.5 border border-[var(--color-border)] text-left hover:border-[var(--color-primary)]/30 transition-colors cursor-pointer"
+          >
+            <!-- Row 1: Group Name -->
+            <div class="text-sm font-semibold text-[var(--color-text)] truncate">
+              {group.name}
             </div>
             
-            <!-- Current Node Dropdown -->
-            <div class="relative">
-              <select
-                value={currentNodeName}
-                onchange={(e) => switchProxyNode(group.name, e.currentTarget.value)}
-                disabled={switchingNodes.has(group.name)}
-                class="w-full px-2 py-1.5 text-xs bg-[var(--color-bg)] border border-[var(--color-border)] rounded text-[var(--color-text)] focus:outline-none focus-visible:ring-1 focus-visible:ring-[var(--color-primary)] disabled:opacity-50"
-              >
-                {#each group.all || [] as nodeName}
-                  {@const delay = getNodeLatency(nodeName)}
-                  <option value={nodeName}>
-                    {nodeName} {delay !== null ? `(${delay}ms)` : ''}
-                  </option>
-                {/each}
-              </select>
-              {#if switchingNodes.has(group.name)}
-                <div class="absolute right-6 top-1/2 -translate-y-1/2">
-                  <span class="animate-spin text-xs">⏳</span>
-                </div>
-              {/if}
+            <!-- Row 2: Type + Node Count -->
+            <div class="text-xs text-[var(--color-text-secondary)] mt-0.5">
+              {getGroupTypeLabel(group.type)} ({nodeCount.available}/{nodeCount.total})
             </div>
             
-            <!-- Current Node Display with Latency -->
+            <!-- Row 3: Current Node + Latency -->
             {#if currentNodeName}
-              <div class="flex items-center justify-between mt-2 pt-2 border-t border-[var(--color-border)]">
-                <span class="text-xs text-[var(--color-text-secondary)] truncate flex-1">
+              <div class="flex items-center justify-between mt-1.5">
+                <span class="text-xs text-[var(--color-text-secondary)] truncate flex-1 flex items-center gap-1">
+                  <span class="opacity-60">◉</span>
                   {currentNodeName}
                 </span>
-                {#if currentNodeLatency !== null}
-                  <span class="text-xs font-medium {getDelayColor(currentNodeLatency)}">
-                    {formatDelay(currentNodeLatency)}
+                {#if testingLatencyGroups.has(group.name) || testingLatencyNodes.has(currentNodeName)}
+                  <span class="animate-spin text-xs ml-1 shrink-0">⏳</span>
+                {:else if currentNodeLatency !== null && currentNodeLatency > 0}
+                  <span class="text-xs font-medium ml-1 shrink-0 {getDelayColor(currentNodeLatency)}">
+                    {currentNodeLatency}
                   </span>
                 {:else}
-                  <button
-                    onclick={() => testNodeLatency(currentNodeName)}
-                    disabled={testingLatencyNodes.has(currentNodeName)}
-                    class="text-xs p-1 rounded hover:bg-[var(--color-bg-tertiary)] transition-colors"
+                  <span
+                    role="button"
+                    tabindex="0"
+                    onclick={(e) => {
+                      e.stopPropagation();
+                      testGroupLatency(group.name);
+                    }}
+                    onkeydown={(e) => {
+                      if (e.key === 'Enter' || e.key === ' ') {
+                        e.stopPropagation();
+                        testGroupLatency(group.name);
+                      }
+                    }}
+                    class="text-xs ml-1 shrink-0 hover:opacity-80"
                   >
-                    {testingLatencyNodes.has(currentNodeName) ? '⏳' : '⚡'}
-                  </button>
+                    ⚡
+                  </span>
                 {/if}
               </div>
             {/if}
-            
-            <!-- Expandable Node List -->
-            {#if group.all && group.all.length > 0}
-              <button
-                onclick={() => toggleGroupExpanded(group.name)}
-                class="w-full mt-2 flex items-center justify-center gap-1 text-xs text-[var(--color-text-secondary)] hover:text-[var(--color-text)] transition-colors py-1"
-              >
-                <span>{expandedGroups.has(group.name) ? '▲' : '▼'}</span>
-                <span>{expandedGroups.has(group.name) ? 'Hide' : 'Show'} {group.all.length} nodes</span>
-              </button>
-              
-              {#if expandedGroups.has(group.name)}
-                <div class="mt-2 space-y-1 max-h-32 overflow-y-auto">
-                  {#each group.all as nodeName}
-                    {@const isSelected = nodeName === group.now}
-                    {@const delay = getNodeLatency(nodeName)}
-                    <button
-                      onclick={() => switchProxyNode(group.name, nodeName)}
-                      disabled={isSelected || switchingNodes.has(group.name)}
-                      class="w-full flex items-center justify-between px-2 py-1.5 text-xs rounded transition-colors {isSelected 
-                        ? 'bg-[var(--color-primary)]/10 text-[var(--color-primary)]' 
-                        : 'hover:bg-[var(--color-bg-tertiary)] text-[var(--color-text-secondary)]'}"
-                    >
-                      <span class="truncate flex-1 text-left">{nodeName}</span>
-                      <div class="flex items-center gap-1">
-                        {#if delay !== null}
-                          <span class="{getDelayColor(delay)}">{formatDelay(delay)}</span>
-                        {:else}
-                          <span
-                            role="button"
-                            tabindex="0"
-                            onclick={(e) => {
-                              e.stopPropagation();
-                              testNodeLatency(nodeName);
-                            }}
-                            onkeydown={(e) => {
-                              if (e.key === 'Enter' || e.key === ' ') {
-                                e.stopPropagation();
-                                testNodeLatency(nodeName);
-                              }
-                            }}
-                            class="p-0.5 rounded hover:bg-[var(--color-bg-tertiary)] cursor-pointer {testingLatencyNodes.has(nodeName) ? 'opacity-50 pointer-events-none' : ''}"
-                          >
-                            {testingLatencyNodes.has(nodeName) ? '⏳' : '⚡'}
-                          </span>
-                        {/if}
-                        {#if isSelected}
-                          <span>✓</span>
-                        {/if}
-                      </div>
-                    </button>
-                  {/each}
-                </div>
-              {/if}
-            {/if}
-          </div>
+          </button>
         {/each}
       </div>
       
@@ -688,6 +631,95 @@
         </div>
       {/if}
     </section>
+
+    <!-- ============================================ -->
+    <!-- Expanded Group Overlay -->
+    <!-- ============================================ -->
+    {#each proxyGroups as group}
+      {#if expandedGroups.has(group.name)}
+        {@const currentNodeName = group.now}
+        <!-- Backdrop -->
+        <!-- svelte-ignore a11y_no_static_element_interactions -->
+        <div
+          class="fixed inset-0 bg-black/50 z-20"
+          onclick={() => toggleGroupExpanded(group.name)}
+          onkeydown={(e) => {
+            if (e.key === 'Escape') toggleGroupExpanded(group.name);
+          }}
+        ></div>
+        
+        <!-- Panel -->
+        <div class="fixed inset-x-0 bottom-0 z-30 bg-[var(--color-bg)] rounded-t-2xl max-h-[70vh] flex flex-col border-t border-[var(--color-border)]">
+          <!-- Panel Header -->
+          <div class="flex items-center justify-between px-4 py-3 border-b border-[var(--color-border)] shrink-0">
+            <div>
+              <div class="text-sm font-semibold text-[var(--color-text)]">{group.name}</div>
+              <div class="text-xs text-[var(--color-text-secondary)]">{group.type} · {group.all?.length || 0} nodes</div>
+            </div>
+            <div class="flex items-center gap-2">
+              <button
+                onclick={() => testGroupLatency(group.name)}
+                disabled={testingLatencyGroups.has(group.name)}
+                class="text-xs px-2 py-1 rounded bg-[var(--color-bg-secondary)] text-[var(--color-text-secondary)] hover:bg-[var(--color-bg-tertiary)] border border-[var(--color-border)] transition-colors"
+              >
+                {testingLatencyGroups.has(group.name) ? '⏳ Testing...' : '⚡ Test All'}
+              </button>
+              <button
+                onclick={() => toggleGroupExpanded(group.name)}
+                class="text-sm p-1 rounded hover:bg-[var(--color-bg-secondary)] text-[var(--color-text-secondary)] transition-colors"
+              >
+                ✕
+              </button>
+            </div>
+          </div>
+          
+          <!-- Node List -->
+          <div class="overflow-y-auto flex-1 p-2">
+            {#each group.all || [] as nodeName}
+              {@const isSelected = nodeName === currentNodeName}
+              {@const delay = getNodeLatency(nodeName)}
+              <button
+                onclick={() => switchProxyNode(group.name, nodeName)}
+                disabled={isSelected || switchingNodes.has(group.name)}
+                class="w-full flex items-center justify-between px-3 py-2 text-xs rounded-lg transition-colors {isSelected 
+                  ? 'bg-[var(--color-primary)]/10 text-[var(--color-primary)]' 
+                  : 'hover:bg-[var(--color-bg-secondary)] text-[var(--color-text-secondary)]'}"
+              >
+                <span class="truncate flex-1 text-left">{nodeName}</span>
+                <div class="flex items-center gap-1.5 ml-2 shrink-0">
+                  {#if delay !== null && delay > 0}
+                    <span class="{getDelayColor(delay)}">{delay}ms</span>
+                  {:else if testingLatencyNodes.has(nodeName)}
+                    <span class="animate-spin">⏳</span>
+                  {:else}
+                    <span
+                      role="button"
+                      tabindex="0"
+                      onclick={(e) => {
+                        e.stopPropagation();
+                        testNodeLatency(nodeName);
+                      }}
+                      onkeydown={(e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                          e.stopPropagation();
+                          testNodeLatency(nodeName);
+                        }
+                      }}
+                      class="p-0.5 rounded hover:bg-[var(--color-bg-tertiary)] cursor-pointer"
+                    >
+                      ⚡
+                    </span>
+                  {/if}
+                  {#if isSelected}
+                    <span class="text-[var(--color-primary)]">✓</span>
+                  {/if}
+                </div>
+              </button>
+            {/each}
+          </div>
+        </div>
+      {/if}
+    {/each}
   {/if}
 </div>
 

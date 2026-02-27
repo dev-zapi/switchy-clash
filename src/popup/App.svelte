@@ -435,6 +435,9 @@
               {#if version?.version}
                 <span class="ml-1">{version.version}</span>
               {/if}
+              {#if isProxyEnabled}
+                <span class="text-green-500 ml-1">Proxy On</span>
+              {/if}
             </span>
           {/if}
         </div>
@@ -445,7 +448,7 @@
           <button
             onclick={toggleProxy}
             disabled={isTogglingProxy}
-            class="p-2 rounded-md shadow-sm transition-colors {isProxyEnabled 
+            class="w-9 h-9 flex items-center justify-center rounded-md shadow transition-colors {isProxyEnabled 
               ? 'bg-green-500/10 text-green-500 hover:bg-green-500/20' 
               : 'bg-[var(--color-bg-secondary)] text-[var(--color-text-secondary)] hover:bg-[var(--color-bg-tertiary)]'}"
             title={isProxyEnabled ? 'Disable Proxy' : 'Enable Proxy'}
@@ -460,7 +463,7 @@
           <!-- Settings -->
           <button
             onclick={openSettings}
-            class="p-2 rounded-md shadow-sm bg-[var(--color-bg-secondary)] text-[var(--color-text-secondary)] hover:bg-[var(--color-bg-tertiary)] transition-colors"
+            class="w-9 h-9 flex items-center justify-center rounded-md shadow bg-[var(--color-bg-secondary)] text-[var(--color-text-secondary)] hover:bg-[var(--color-bg-tertiary)] transition-colors"
             title="Settings"
           >
             ⚙️
@@ -469,7 +472,7 @@
           <!-- Dashboard -->
           <button
             onclick={openDashboard}
-            class="p-2 rounded-md shadow-sm bg-[var(--color-bg-secondary)] text-[var(--color-text-secondary)] hover:bg-[var(--color-bg-tertiary)] transition-colors"
+            class="w-9 h-9 flex items-center justify-center rounded-md shadow bg-[var(--color-bg-secondary)] text-[var(--color-text-secondary)] hover:bg-[var(--color-bg-tertiary)] transition-colors"
             title="Open Dashboard"
           >
             📊
@@ -478,7 +481,7 @@
           <!-- Theme Toggle -->
           <button
             onclick={toggleTheme}
-            class="p-2 rounded-md shadow-sm bg-[var(--color-bg-secondary)] text-[var(--color-text-secondary)] hover:bg-[var(--color-bg-tertiary)] transition-colors"
+            class="w-9 h-9 flex items-center justify-center rounded-md shadow bg-[var(--color-bg-secondary)] text-[var(--color-text-secondary)] hover:bg-[var(--color-bg-tertiary)] transition-colors"
             title="Toggle Theme ({theme})"
           >
             {getThemeIcon()}
@@ -587,7 +590,7 @@
           {@const nodeCount = getGroupNodeCount(group)}
           
           <div
-            class="relative bg-[var(--color-bg-secondary)] rounded-md px-2.5 py-2 shadow-sm hover:shadow-md transition-shadow cursor-pointer"
+            class="relative bg-[var(--color-bg-secondary)] rounded-md px-2.5 py-2 shadow hover:shadow-lg transition-shadow cursor-pointer"
           >
             <!-- Speed Test Button (top-right corner) -->
             <button
@@ -607,7 +610,8 @@
             </button>
 
             <!-- Clickable area for expanding group -->
-            <button
+            <!-- svelte-ignore a11y_no_static_element_interactions -->
+            <div
               onclick={() => toggleGroupExpanded(group.name)}
               class="w-full text-left"
             >
@@ -637,7 +641,7 @@
                   {/if}
                 </div>
               {/if}
-            </button>
+            </div>
           </div>
         {/each}
       </div>
@@ -677,7 +681,7 @@
               <button
                 onclick={() => testGroupLatency(group.name)}
                 disabled={testingLatencyGroups.has(group.name)}
-          class="text-xs px-2 py-1 rounded-md shadow-sm bg-[var(--color-bg-secondary)] text-[var(--color-text-secondary)] hover:bg-[var(--color-bg-tertiary)] transition-colors"
+          class="text-xs px-2 py-1 rounded-md shadow bg-[var(--color-bg-secondary)] text-[var(--color-text-secondary)] hover:bg-[var(--color-bg-tertiary)] transition-colors"
               >
                 {testingLatencyGroups.has(group.name) ? '⏳ Testing...' : '⚡ Test All'}
               </button>
@@ -698,10 +702,12 @@
               {@const isSelector = group.type === 'Selector'}
               {#if isSelector}
                 <!-- Selector: clickable node for switching -->
-                <button
-                  onclick={() => switchProxyNode(group.name, nodeName)}
-                  disabled={isSelected || switchingNodes.has(group.name)}
-                  class="w-full flex items-center justify-between px-3 py-2 text-xs rounded-lg transition-colors {isSelected 
+                <!-- svelte-ignore a11y_no_static_element_interactions -->
+                <div
+                  onclick={() => {
+                    if (!isSelected && !switchingNodes.has(group.name)) switchProxyNode(group.name, nodeName);
+                  }}
+                  class="w-full flex items-center justify-between px-3 py-2 text-xs rounded-md transition-colors cursor-pointer {isSelected 
                     ? 'bg-[var(--color-primary)]/10 text-[var(--color-primary)]' 
                     : 'hover:bg-[var(--color-bg-secondary)] text-[var(--color-text-secondary)]'}"
                 >
@@ -736,11 +742,11 @@
                       <span class="text-[var(--color-primary)]">✓</span>
                     {/if}
                   </div>
-                </button>
+                </div>
               {:else}
                 <!-- Non-selector: read-only node display -->
                 <div
-                  class="w-full flex items-center justify-between px-3 py-2 text-xs rounded-lg {isSelected 
+                  class="w-full flex items-center justify-between px-3 py-2 text-xs rounded-md {isSelected 
                     ? 'bg-[var(--color-primary)]/10 text-[var(--color-primary)]' 
                     : 'text-[var(--color-text-secondary)]'}"
                 >

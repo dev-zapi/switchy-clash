@@ -412,7 +412,7 @@
     <!-- ============================================ -->
     <!-- Row 1: Header -->
     <!-- ============================================ -->
-    <header class="sticky top-0 z-10 bg-[var(--color-bg)] border-b border-[var(--color-border)] px-5 py-4">
+    <header class="sticky top-0 z-10 bg-[var(--color-bg)] border-b border-[var(--color-border)] px-3 py-4">
       <div class="flex items-center justify-between mb-2">
         <!-- Left: Active Config Info -->
         <div class="flex flex-col min-w-0">
@@ -515,7 +515,7 @@
     <!-- ============================================ -->
     <!-- Row 2: Rule Match -->
     <!-- ============================================ -->
-    <section class="px-5 py-4 border-b border-[var(--color-border)]">
+    <section class="px-3 py-4 border-b border-[var(--color-border)]">
       <div class="grid grid-cols-2 gap-4">
         <!-- Left: Current Tab Info -->
         <div>
@@ -570,7 +570,7 @@
     <!-- ============================================ -->
     <!-- Row 3: Proxy Groups -->
     <!-- ============================================ -->
-    <section class="px-5 py-4 pb-5">
+    <section class="px-3 py-4 pb-5">
       <div class="flex items-center justify-between mb-3">
         <h3 class="text-sm font-semibold text-[var(--color-text)]">Proxy Groups</h3>
         <button

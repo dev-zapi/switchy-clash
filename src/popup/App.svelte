@@ -610,9 +610,14 @@
             </button>
 
             <!-- Clickable area for expanding group -->
-            <!-- svelte-ignore a11y_no_static_element_interactions -->
+            <!-- svelte-ignore a11y_no_static_element_interactions a11y_click_events_have_key_events -->
             <div
               onclick={() => toggleGroupExpanded(group.name)}
+              onkeydown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') toggleGroupExpanded(group.name);
+              }}
+              role="button"
+              tabindex="0"
               class="w-full text-left"
             >
               <!-- Row 1: Group Name -->
@@ -702,11 +707,19 @@
               {@const isSelector = group.type === 'Selector'}
               {#if isSelector}
                 <!-- Selector: clickable node for switching -->
-                <!-- svelte-ignore a11y_no_static_element_interactions -->
+                <!-- svelte-ignore a11y_no_static_element_interactions a11y_click_events_have_key_events -->
                 <div
                   onclick={() => {
                     if (!isSelected && !switchingNodes.has(group.name)) switchProxyNode(group.name, nodeName);
                   }}
+                  onkeydown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      if (!isSelected && !switchingNodes.has(group.name)) switchProxyNode(group.name, nodeName);
+                    }
+                  }}
+                  role="option"
+                  aria-selected={isSelected}
+                  tabindex="0"
                   class="w-full flex items-center justify-between px-3 py-2 text-xs rounded-md transition-colors cursor-pointer {isSelected 
                     ? 'bg-[var(--color-primary)]/10 text-[var(--color-primary)]' 
                     : 'hover:bg-[var(--color-bg-secondary)] text-[var(--color-text-secondary)]'}"

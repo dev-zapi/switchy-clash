@@ -27,6 +27,7 @@
 	type="button"
 	role="switch"
 	aria-checked={checked}
+	aria-label={checked ? 'Disable' : 'Enable'}
 	disabled={disabled}
 	onclick={handleToggle}
 	onkeydown={handleKeyDown}

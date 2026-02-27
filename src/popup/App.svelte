@@ -515,19 +515,19 @@
     <!-- ============================================ -->
     <!-- Row 2: Rule Match -->
     <!-- ============================================ -->
-    <section class="px-3 py-4 border-b border-[var(--color-border)]">
-      <div class="grid grid-cols-2 gap-4">
+    <section class="px-3 py-2 border-b border-[var(--color-border)]">
+      <div class="grid grid-cols-2 gap-2">
         <!-- Left: Current Tab Info -->
         <div>
-          <div class="flex items-center gap-2 mb-2">
-            <span class="text-lg">🌐</span>
-            <span class="text-sm font-medium text-[var(--color-text-secondary)] truncate">
+          <div class="flex items-center gap-1.5 mb-1">
+            <span class="text-sm">🌐</span>
+            <span class="text-xs font-medium text-[var(--color-text-secondary)] truncate">
               {currentTabDomain}
             </span>
           </div>
-          <div class="flex items-center gap-2">
-            <span class="text-lg">{matchedConnection ? '🟢' : '⚪'}</span>
-            <span class="text-sm text-[var(--color-text-secondary)]">
+          <div class="flex items-center gap-1.5">
+            <span class="text-sm">{matchedConnection ? '🟢' : '⚪'}</span>
+            <span class="text-xs text-[var(--color-text-secondary)]">
               {matchedConnection ? 'Connected' : 'No Connection'}
             </span>
           </div>
@@ -536,15 +536,15 @@
         <!-- Right: Rule Details -->
         <div class="text-right">
           {#if matchedConnection}
-            <div class="mb-1">
-              <span class="text-xs px-2 py-1 bg-[var(--color-primary)]/10 text-[var(--color-primary)] rounded">
+            <div class="mb-0.5">
+              <span class="text-xs px-1.5 py-0.5 bg-[var(--color-primary)]/10 text-[var(--color-primary)] rounded">
                 {matchedConnection.rule}
               </span>
             </div>
-            <div class="text-xs text-[var(--color-text-secondary)] mb-1">
+            <div class="text-xs text-[var(--color-text-secondary)] mb-0.5">
               {matchedConnection.rulePayload || matchedConnection.metadata?.host || ''}
             </div>
-            <div class="flex items-center justify-end gap-1 text-sm">
+            <div class="flex items-center justify-end gap-1 text-xs">
               <span>🚀</span>
               <span class="font-medium text-[var(--color-text)]">
                 {matchedConnection.chains?.[0] || 'Direct'}

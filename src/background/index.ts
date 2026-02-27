@@ -22,24 +22,43 @@ function getAPI(config: ExtensionConfig): ClashAPI {
   return new ClashAPI(config.host, config.port, config.secret);
 }
 
+// Generate icon ImageData from an emoji character using OffscreenCanvas
+function emojiToImageData(emoji: string, size: number): ImageData {
+  const canvas = new OffscreenCanvas(size, size);
+  const ctx = canvas.getContext('2d')!;
+  ctx.clearRect(0, 0, size, size);
+  ctx.font = `${Math.round(size * 0.75)}px sans-serif`;
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText(emoji, size / 2, size / 2);
+  return ctx.getImageData(0, 0, size, size);
+}
+
 // Set extension icon based on proxy state
-async function updateIcon(enabled: boolean, error: boolean = false): Promise<void> {
-  const suffix = enabled ? 'on' : 'off';
-  const iconBase = `icons/icon-${suffix}`;
+async function updateIcon(enabled: boolean, error: boolean = false, emoji?: string): Promise<void> {
   try {
-    await chrome.action.setIcon({
-      path: {
-        16: `${iconBase}-16.png`,
-        32: `${iconBase}-32.png`,
-        48: `${iconBase}-48.png`,
-        128: `${iconBase}-128.png`,
-      },
-    });
+    if (enabled && emoji) {
+      // Use the config emoji as the icon when proxy is enabled
+      const imageData: Record<string, ImageData> = {};
+      for (const size of [16, 32, 48, 128]) {
+        imageData[size.toString()] = emojiToImageData(emoji, size);
+      }
+      await chrome.action.setIcon({ imageData });
+    } else {
+      const suffix = enabled ? 'on' : 'off';
+      const iconBase = `icons/icon-${suffix}`;
+      await chrome.action.setIcon({
+        path: {
+          16: `${iconBase}-16.png`,
+          32: `${iconBase}-32.png`,
+          48: `${iconBase}-48.png`,
+          128: `${iconBase}-128.png`,
+        },
+      });
+    }
     if (error) {
       await chrome.action.setBadgeText({ text: '!' });
       await chrome.action.setBadgeBackgroundColor({ color: '#ef4444' });
-    } else if (enabled) {
-      await chrome.action.setBadgeText({ text: '' });
     } else {
       await chrome.action.setBadgeText({ text: '' });
     }
@@ -73,7 +92,7 @@ async function enableProxy(): Promise<{ success: boolean; error?: string }> {
     }
     await ProxyService.enable(config.host, proxyPort, bypassList);
     await storage.setProxyEnabled(true);
-    await updateIcon(true);
+    await updateIcon(true, false, config.emoji);
     // Update config status
     await storage.updateConfig(config.id, {
       status: 'available',
@@ -223,14 +242,22 @@ chrome.runtime.onMessage.addListener(
 );
 
 // Initialize on install/startup
-chrome.runtime.onInstalled.addListener(async () => {
+async function initIcon(): Promise<void> {
   const proxyEnabled = await storage.getProxyEnabled();
-  await updateIcon(proxyEnabled);
+  if (proxyEnabled) {
+    const config = await storage.getActiveConfig();
+    await updateIcon(true, false, config?.emoji);
+  } else {
+    await updateIcon(false);
+  }
+}
+
+chrome.runtime.onInstalled.addListener(async () => {
+  await initIcon();
   await autoSwitch();
 });
 
 chrome.runtime.onStartup.addListener(async () => {
-  const proxyEnabled = await storage.getProxyEnabled();
-  await updateIcon(proxyEnabled);
+  await initIcon();
   await autoSwitch();
 });

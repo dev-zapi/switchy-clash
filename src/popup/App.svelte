@@ -414,14 +414,27 @@
     <!-- ============================================ -->
     <header class="sticky top-0 z-10 bg-[var(--color-bg)] border-b border-[var(--color-border)] px-5 py-4">
       <div class="flex items-center justify-between mb-2">
-        <!-- Left: Version Info -->
-        <div class="flex items-center gap-2">
-          <span class="text-lg font-bold text-[var(--color-text)]">
-            Clash {version?.version || ''}
-          </span>
-          {#if getVersionBadge()}
-            <span class="px-2 py-0.5 text-xs bg-[var(--color-primary)]/10 text-[var(--color-primary)] rounded-full font-medium">
-              {getVersionBadge()}
+        <!-- Left: Active Config Info -->
+        <div class="flex flex-col min-w-0">
+          <div class="flex items-center gap-1.5">
+            {#if activeConfig}
+              <span class="text-base">{activeConfig.emoji}</span>
+              <span class="text-sm font-bold text-[var(--color-text)] truncate">{activeConfig.name}</span>
+            {:else}
+              <span class="text-sm font-bold text-[var(--color-text)]">No Config</span>
+            {/if}
+            {#if getVersionBadge()}
+              <span class="px-1.5 py-0.5 text-[10px] bg-[var(--color-primary)]/10 text-[var(--color-primary)] rounded-full font-medium shrink-0">
+                {getVersionBadge()}
+              </span>
+            {/if}
+          </div>
+          {#if activeConfig}
+            <span class="text-xs text-[var(--color-text-muted)] truncate">
+              {activeConfig.host}:{activeConfig.port}
+              {#if isProxyEnabled}
+                <span class="text-green-500 ml-1">● Proxy On</span>
+              {/if}
             </span>
           {/if}
         </div>
@@ -682,43 +695,86 @@
             {#each group.all || [] as nodeName}
               {@const isSelected = nodeName === currentNodeName}
               {@const delay = getNodeLatency(nodeName)}
-              <button
-                onclick={() => switchProxyNode(group.name, nodeName)}
-                disabled={isSelected || switchingNodes.has(group.name)}
-                class="w-full flex items-center justify-between px-3 py-2 text-xs rounded-lg transition-colors {isSelected 
-                  ? 'bg-[var(--color-primary)]/10 text-[var(--color-primary)]' 
-                  : 'hover:bg-[var(--color-bg-secondary)] text-[var(--color-text-secondary)]'}"
-              >
-                <span class="truncate flex-1 text-left">{nodeName}</span>
-                <div class="flex items-center gap-1.5 ml-2 shrink-0">
-                  {#if delay !== null && delay > 0}
-                    <span class="{getDelayColor(delay)}">{delay}ms</span>
-                  {:else if testingLatencyNodes.has(nodeName)}
-                    <span class="animate-spin">⏳</span>
-                  {:else}
-                    <span
-                      role="button"
-                      tabindex="0"
-                      onclick={(e) => {
-                        e.stopPropagation();
-                        testNodeLatency(nodeName);
-                      }}
-                      onkeydown={(e) => {
-                        if (e.key === 'Enter' || e.key === ' ') {
+              {@const isSelector = group.type === 'Selector'}
+              {#if isSelector}
+                <!-- Selector: clickable node for switching -->
+                <button
+                  onclick={() => switchProxyNode(group.name, nodeName)}
+                  disabled={isSelected || switchingNodes.has(group.name)}
+                  class="w-full flex items-center justify-between px-3 py-2 text-xs rounded-lg transition-colors {isSelected 
+                    ? 'bg-[var(--color-primary)]/10 text-[var(--color-primary)]' 
+                    : 'hover:bg-[var(--color-bg-secondary)] text-[var(--color-text-secondary)]'}"
+                >
+                  <span class="truncate flex-1 text-left">{nodeName}</span>
+                  <div class="flex items-center gap-1.5 ml-2 shrink-0">
+                    {#if switchingNodes.has(group.name) && !isSelected}
+                      <span class="animate-spin">⏳</span>
+                    {:else if delay !== null && delay > 0}
+                      <span class="{getDelayColor(delay)}">{delay}ms</span>
+                    {:else if testingLatencyNodes.has(nodeName)}
+                      <span class="animate-spin">⏳</span>
+                    {:else}
+                      <span
+                        role="button"
+                        tabindex="0"
+                        onclick={(e) => {
                           e.stopPropagation();
                           testNodeLatency(nodeName);
-                        }
-                      }}
-                      class="p-0.5 rounded hover:bg-[var(--color-bg-tertiary)] cursor-pointer"
-                    >
-                      ⚡
-                    </span>
-                  {/if}
-                  {#if isSelected}
-                    <span class="text-[var(--color-primary)]">✓</span>
-                  {/if}
+                        }}
+                        onkeydown={(e) => {
+                          if (e.key === 'Enter' || e.key === ' ') {
+                            e.stopPropagation();
+                            testNodeLatency(nodeName);
+                          }
+                        }}
+                        class="p-0.5 rounded hover:bg-[var(--color-bg-tertiary)] cursor-pointer"
+                      >
+                        ⚡
+                      </span>
+                    {/if}
+                    {#if isSelected}
+                      <span class="text-[var(--color-primary)]">✓</span>
+                    {/if}
+                  </div>
+                </button>
+              {:else}
+                <!-- Non-selector: read-only node display -->
+                <div
+                  class="w-full flex items-center justify-between px-3 py-2 text-xs rounded-lg {isSelected 
+                    ? 'bg-[var(--color-primary)]/10 text-[var(--color-primary)]' 
+                    : 'text-[var(--color-text-secondary)]'}"
+                >
+                  <span class="truncate flex-1 text-left">{nodeName}</span>
+                  <div class="flex items-center gap-1.5 ml-2 shrink-0">
+                    {#if delay !== null && delay > 0}
+                      <span class="{getDelayColor(delay)}">{delay}ms</span>
+                    {:else if testingLatencyNodes.has(nodeName)}
+                      <span class="animate-spin">⏳</span>
+                    {:else}
+                      <span
+                        role="button"
+                        tabindex="0"
+                        onclick={(e) => {
+                          e.stopPropagation();
+                          testNodeLatency(nodeName);
+                        }}
+                        onkeydown={(e) => {
+                          if (e.key === 'Enter' || e.key === ' ') {
+                            e.stopPropagation();
+                            testNodeLatency(nodeName);
+                          }
+                        }}
+                        class="p-0.5 rounded hover:bg-[var(--color-bg-tertiary)] cursor-pointer"
+                      >
+                        ⚡
+                      </span>
+                    {/if}
+                    {#if isSelected}
+                      <span class="text-[var(--color-primary)]">✓</span>
+                    {/if}
+                  </div>
                 </div>
-              </button>
+              {/if}
             {/each}
           </div>
         </div>

@@ -1,5 +1,6 @@
 <script lang="ts">
   import { onMount } from 'svelte';
+  import { fade, fly } from 'svelte/transition';
   import { ClashAPI } from '$lib/services/clash-api';
   import { storage } from '$lib/services/storage';
   import type { ExtensionConfig, ClashVersion, ProxyNode, ProxyGroup, ThemeMode, Connection } from '$lib/types';
@@ -242,17 +243,21 @@
     if (!api) return;
     
     try {
-      switchingNodes.add(groupName);
+      switchingNodes.add(nodeName);
       switchingNodes = switchingNodes; // Trigger reactivity
       
       await api.switchProxy(groupName, nodeName);
       
       // Refresh groups to show updated selection
       await fetchProxyGroups();
+      
+      // Close the overlay after successful switch
+      expandedGroups.delete(groupName);
+      expandedGroups = expandedGroups;
     } catch (err) {
       console.error('Failed to switch proxy:', err);
     } finally {
-      switchingNodes.delete(groupName);
+      switchingNodes.delete(nodeName);
       switchingNodes = switchingNodes;
     }
   }
@@ -377,6 +382,32 @@
       case 'Relay': return 'Relay';
       default: return type;
     }
+  }
+
+  function getSortedNodes(group: ProxyGroup): string[] {
+    const nodes = [...(group.all || [])];
+    const currentNode = group.now;
+    
+    return nodes.sort((a, b) => {
+      // Selected node always first
+      if (a === currentNode) return -1;
+      if (b === currentNode) return 1;
+      
+      const delayA = getNodeLatency(a);
+      const delayB = getNodeLatency(b);
+      const hasA = delayA !== null && delayA > 0;
+      const hasB = delayB !== null && delayB > 0;
+      
+      // Nodes with valid delay come before those without
+      if (hasA && !hasB) return -1;
+      if (!hasA && hasB) return 1;
+      
+      // Both have delay: sort by latency ascending
+      if (hasA && hasB) return delayA! - delayB!;
+      
+      // Neither has delay: keep original order
+      return 0;
+    });
   }
 </script>
 
@@ -589,8 +620,9 @@
           {@const currentNodeLatency = currentNodeName ? getNodeLatency(currentNodeName) : null}
           {@const nodeCount = getGroupNodeCount(group)}
           
+          {@const isSelector = group.type === 'Selector'}
           <div
-            class="relative bg-[var(--color-bg-secondary)] rounded-md px-2.5 py-2 shadow hover:shadow-lg transition-shadow cursor-pointer"
+            class="relative bg-[var(--color-bg-secondary)] rounded-md px-2.5 py-2 shadow hover:shadow-lg transition-shadow cursor-pointer {isSelector ? 'border border-[var(--color-primary)]/20' : ''}"
           >
             <!-- Speed Test Button (top-right corner) -->
             <button
@@ -626,8 +658,11 @@
               </div>
               
               <!-- Row 2: Type + Node Count -->
-              <div class="text-xs text-[var(--color-text-secondary)]">
+              <div class="text-xs text-[var(--color-text-secondary)] flex items-center gap-1">
                 {getGroupTypeLabel(group.type)} ({nodeCount.available}/{nodeCount.total})
+                {#if isSelector}
+                  <span class="text-[var(--color-primary)] opacity-60" title="Click to switch node">▾</span>
+                {/if}
               </div>
               
               <!-- Row 3: Current Node + Latency -->
@@ -668,6 +703,7 @@
         <!-- svelte-ignore a11y_no_static_element_interactions -->
         <div
           class="fixed inset-0 bg-black/50 z-20"
+          transition:fade={{ duration: 150 }}
           onclick={() => toggleGroupExpanded(group.name)}
           onkeydown={(e) => {
             if (e.key === 'Escape') toggleGroupExpanded(group.name);
@@ -675,7 +711,10 @@
         ></div>
         
         <!-- Panel -->
-        <div class="fixed inset-x-0 bottom-0 z-30 bg-[var(--color-bg)] rounded-t-2xl max-h-[70vh] flex flex-col border-t border-[var(--color-border)]">
+        <div
+          class="fixed inset-x-0 bottom-0 z-30 bg-[var(--color-bg)] rounded-t-2xl max-h-[70vh] flex flex-col border-t border-[var(--color-border)]"
+          transition:fly={{ y: 300, duration: 200 }}
+        >
           <!-- Panel Header -->
           <div class="flex items-center justify-between px-4 py-3 border-b border-[var(--color-border)] shrink-0">
             <div>
@@ -701,7 +740,7 @@
           
           <!-- Node List -->
           <div class="overflow-y-auto flex-1 p-2">
-            {#each group.all || [] as nodeName}
+            {#each getSortedNodes(group) as nodeName}
               {@const isSelected = nodeName === currentNodeName}
               {@const delay = getNodeLatency(nodeName)}
               {@const isSelector = group.type === 'Selector'}
@@ -710,11 +749,11 @@
                 <!-- svelte-ignore a11y_no_static_element_interactions a11y_click_events_have_key_events -->
                 <div
                   onclick={() => {
-                    if (!isSelected && !switchingNodes.has(group.name)) switchProxyNode(group.name, nodeName);
+                    if (!isSelected && !switchingNodes.has(nodeName)) switchProxyNode(group.name, nodeName);
                   }}
                   onkeydown={(e) => {
                     if (e.key === 'Enter' || e.key === ' ') {
-                      if (!isSelected && !switchingNodes.has(group.name)) switchProxyNode(group.name, nodeName);
+                      if (!isSelected && !switchingNodes.has(nodeName)) switchProxyNode(group.name, nodeName);
                     }
                   }}
                   role="option"
@@ -726,7 +765,7 @@
                 >
                   <span class="truncate flex-1 text-left">{nodeName}</span>
                   <div class="flex items-center gap-1.5 ml-2 shrink-0">
-                    {#if switchingNodes.has(group.name) && !isSelected}
+                    {#if switchingNodes.has(nodeName)}
                       <span class="animate-spin">⏳</span>
                     {:else if delay !== null && delay > 0}
                       <span class="{getDelayColor(delay)}">{delay}ms</span>

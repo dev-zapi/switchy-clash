@@ -432,6 +432,9 @@
           {#if activeConfig}
             <span class="text-xs text-[var(--color-text-muted)] truncate">
               {activeConfig.host}:{activeConfig.port}
+              {#if version?.version}
+                <span class="ml-1">v{version.version}</span>
+              {/if}
               {#if isProxyEnabled}
                 <span class="text-green-500 ml-1">● Proxy On</span>
               {/if}

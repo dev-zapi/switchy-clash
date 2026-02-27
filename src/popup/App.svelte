@@ -435,9 +435,6 @@
               {#if version?.version}
                 <span class="ml-1">{version.version}</span>
               {/if}
-              {#if isProxyEnabled}
-                <span class="text-green-500 ml-1">✓ Proxy On</span>
-              {/if}
             </span>
           {/if}
         </div>
@@ -456,7 +453,7 @@
             {#if isTogglingProxy}
               <span class="animate-spin inline-block">⏳</span>
             {:else}
-              <span>{isProxyEnabled ? '🟢' : '⚪'}</span>
+              <span>{isProxyEnabled ? '✓' : '⚪'}</span>
             {/if}
           </button>
           

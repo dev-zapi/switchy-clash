@@ -547,35 +547,38 @@
     <!-- Row 2: Rule Match -->
     <!-- ============================================ -->
     <section class="px-3 py-2 border-b border-[var(--color-border)]">
-      <div class="grid grid-cols-2 gap-2">
-        <!-- Left: Current Tab Info -->
-        <div>
-          <div class="flex items-center gap-1.5 mb-1">
-            <span class="text-sm">🌐</span>
-            <span class="text-xs font-medium text-[var(--color-text-secondary)] truncate">
+      <div class="flex flex-col gap-1.5">
+        <!-- Row 1: Domain + Rule -->
+        <div class="flex items-center justify-between gap-2">
+          <div class="flex items-center gap-1.5 min-w-0">
+            <span class="text-sm shrink-0">🌐</span>
+            <span class="text-xs font-medium text-[var(--color-text)] truncate">
               {currentTabDomain}
             </span>
           </div>
+          {#if matchedConnection}
+            <div class="flex items-center gap-1.5 shrink-0">
+              <span class="text-xs px-1.5 py-0.5 bg-[var(--color-primary)]/10 text-[var(--color-primary)] rounded">
+                {matchedConnection.rule}
+              </span>
+              {#if matchedConnection.rulePayload}
+                <span class="text-xs text-[var(--color-text-secondary)]">
+                  {matchedConnection.rulePayload}
+                </span>
+              {/if}
+            </div>
+          {/if}
+        </div>
+        <!-- Row 2: Connection Status + Proxy Node -->
+        <div class="flex items-center justify-between gap-2">
           <div class="flex items-center gap-1.5">
             <span class="text-sm">{matchedConnection ? '🟢' : '⚪'}</span>
             <span class="text-xs text-[var(--color-text-secondary)]">
               {matchedConnection ? 'Connected' : 'No Connection'}
             </span>
           </div>
-        </div>
-        
-        <!-- Right: Rule Details -->
-        <div class="text-right">
           {#if matchedConnection}
-            <div class="mb-0.5">
-              <span class="text-xs px-1.5 py-0.5 bg-[var(--color-primary)]/10 text-[var(--color-primary)] rounded">
-                {matchedConnection.rule}
-              </span>
-            </div>
-            <div class="text-xs text-[var(--color-text-secondary)] mb-0.5">
-              {matchedConnection.rulePayload || matchedConnection.metadata?.host || ''}
-            </div>
-            <div class="flex items-center justify-end gap-1 text-xs">
+            <div class="flex items-center gap-1.5 text-xs">
               <span>🚀</span>
               <span class="font-medium text-[var(--color-text)]">
                 {matchedConnection.chains?.[0] || 'Direct'}
@@ -583,16 +586,14 @@
               {#if matchedConnection.chains && matchedConnection.chains.length > 0}
                 {@const delay = getNodeLatency(matchedConnection.chains[0])}
                 {#if delay !== null}
-                  <span class="text-xs {getDelayColor(delay)}">
+                  <span class="{getDelayColor(delay)}">
                     ({formatDelay(delay)})
                   </span>
                 {/if}
               {/if}
             </div>
           {:else}
-            <div class="text-xs text-[var(--color-text-secondary)]">
-              No rule matched
-            </div>
+            <span class="text-xs text-[var(--color-text-secondary)]">No rule matched</span>
           {/if}
         </div>
       </div>

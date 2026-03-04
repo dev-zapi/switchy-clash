@@ -1,8 +1,33 @@
+<div align="center">
+
 # Switchy Clash
 
-> A sleek Chrome extension for controlling your [Clash](https://github.com/MetaCubeX/mihomo) (mihomo) proxy — right from the toolbar.
+**A modern Chrome extension for controlling your Clash proxy — right from the toolbar.**
 
-Built with **Svelte 5** + **Tailwind CSS 4** + **TypeScript** + **Vite 6**. Zero runtime dependencies.
+[![Chrome MV3](https://img.shields.io/badge/Chrome-Manifest_V3-4285F4?logo=googlechrome&logoColor=white)](https://developer.chrome.com/docs/extensions/mv3/)
+[![Svelte 5](https://img.shields.io/badge/Svelte_5-Runes-FF3E00?logo=svelte&logoColor=white)](https://svelte.dev)
+[![TypeScript](https://img.shields.io/badge/TypeScript_5-Strict-3178C6?logo=typescript&logoColor=white)](https://typescriptlang.org)
+[![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS_4-06B6D4?logo=tailwindcss&logoColor=white)](https://tailwindcss.com)
+[![Vite](https://img.shields.io/badge/Vite_6-646CFF?logo=vite&logoColor=white)](https://vitejs.dev)
+[![Playwright](https://img.shields.io/badge/Playwright-E2E-2EAD33?logo=playwright&logoColor=white)](https://playwright.dev)
+[![Zero Dependencies](https://img.shields.io/badge/Runtime_Deps-0-brightgreen)](#tech-stack)
+[![License](https://img.shields.io/badge/License-MIT-yellow?logo=opensourceinitiative&logoColor=white)](#license)
+
+</div>
+
+---
+
+## Why Switchy Clash?
+
+If you run a [Clash](https://github.com/MetaCubeX/mihomo) (mihomo) proxy locally, you know the pain: switching nodes means opening a dashboard, toggling the proxy means digging into system settings, and managing multiple instances is a chore.
+
+**Switchy Clash** puts all of that in one popup — toggle proxy, switch nodes, check latency, see which rule matched your current tab — in two clicks from the Chrome toolbar. No dashboard tab. No system preferences. No context switching.
+
+### Who is this for?
+
+- Developers who route traffic through different proxies for testing / debugging
+- Users managing multiple Clash instances (home, office, VPS, ...)
+- Anyone who wants fast, visual control over their Clash proxy without leaving the browser
 
 ---
 

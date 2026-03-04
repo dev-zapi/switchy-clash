@@ -1,6 +1,6 @@
 <script lang="ts">
   import { onMount } from 'svelte';
-  import { fade, fly } from 'svelte/transition';
+  import { fade, scale } from 'svelte/transition';
   import { ClashAPI } from '$lib/services/clash-api';
   import { storage } from '$lib/services/storage';
   import type { ExtensionConfig, ClashVersion, ProxyNode, ProxyGroup, ThemeMode, Connection } from '$lib/types';
@@ -711,10 +711,13 @@
           }}
         ></div>
         
-        <!-- Panel -->
+        <!-- Modal -->
         <div
-          class="fixed inset-x-0 bottom-0 z-30 bg-[var(--color-bg)] rounded-t-2xl max-h-[70vh] flex flex-col border-t border-[var(--color-border)]"
-          transition:fly={{ y: 300, duration: 200 }}
+          class="fixed inset-0 z-30 flex items-center justify-center p-3"
+          transition:scale={{ start: 0.95, duration: 150 }}
+        >
+        <div
+          class="bg-[var(--color-bg)] rounded-xl max-h-[70vh] w-full flex flex-col border border-[var(--color-border)] shadow-xl"
         >
           <!-- Panel Header -->
           <div class="flex items-center justify-between px-4 py-3 border-b border-[var(--color-border)] shrink-0">
@@ -836,6 +839,7 @@
               {/if}
             {/each}
           </div>
+        </div>
         </div>
       {/if}
     {/each}

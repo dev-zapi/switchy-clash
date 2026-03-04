@@ -335,9 +335,10 @@
     if (expandedGroups.has(groupName)) {
       expandedGroups.delete(groupName);
     } else {
+      expandedGroups.clear();
       expandedGroups.add(groupName);
     }
-    expandedGroups = expandedGroups;
+    expandedGroups = new Set(expandedGroups);
   }
   
   function getThemeIcon(): string {

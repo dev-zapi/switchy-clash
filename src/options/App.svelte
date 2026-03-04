@@ -739,6 +739,13 @@
 				<h2 class="text-lg font-medium text-[var(--color-text)] mb-2">Font Settings</h2>
 				<div class="bg-[var(--color-bg-secondary)] rounded-xl border border-[var(--color-border)] p-4">
 					<div class="flex flex-col gap-4">
+						<div class="text-sm text-[var(--color-text-secondary)]">
+							<p>Font settings apply to:</p>
+							<ul class="list-disc list-inside mt-1 space-y-0.5">
+								<li>Popup panel (proxy names, groups, latency)</li>
+								<li>Options page (all UI text)</li>
+							</ul>
+						</div>
 						<div>
 							<label for="font-select" class="block text-sm font-medium text-[var(--color-text-secondary)] mb-1">
 								Font Family
@@ -757,7 +764,7 @@
 						</div>
 						<div>
 							<p class="text-sm text-[var(--color-text-secondary)] mb-2">Preview: <span class="font-medium text-[var(--color-text)]">{getFontLabel(fontFamily)}</span></p>
-							<div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+							<div class="grid grid-cols-1 md:grid-cols-2 gap-3" style="font-family: var(--font-family, var(--font-sans));">
 								<div class="bg-[var(--color-bg)] rounded-lg p-3 border border-[var(--color-border)]">
 									<p class="text-xs text-[var(--color-text-muted)] mb-1">Latin Text</p>
 									<p class="text-sm">The quick brown fox jumps over the lazy dog.</p>

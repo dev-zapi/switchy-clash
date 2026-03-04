@@ -426,26 +426,11 @@
 
 <div class="min-h-screen bg-[var(--color-bg)] text-[var(--color-text)]">
 	<div class="max-w-[800px] mx-auto px-6 py-8">
-		<!-- Header -->
-		<header class="flex items-center justify-between mb-8">
-			<h1 class="text-2xl font-semibold text-[var(--color-text)]">
-				Switchy Clash Settings
-			</h1>
-			<div class="flex items-center gap-3">
-				<div class="flex flex-col items-end">
-					<label for="font-select" class="text-xs text-[var(--color-text-secondary)] mb-1">Font</label>
-					<select
-						id="font-select"
-						value={fontFamily}
-						onchange={handleFontChange}
-						data-font={fontFamily}
-						class="px-3 py-2 text-sm bg-[var(--color-bg-secondary)] border border-[var(--color-border)] rounded-lg text-[var(--color-text)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary)]"
-					>
-						{#each FONT_OPTIONS as option}
-							<option value={option.value}>{option.label}</option>
-						{/each}
-					</select>
-				</div>
+			<!-- Header -->
+			<header class="flex items-center justify-between mb-8">
+				<h1 class="text-2xl font-semibold text-[var(--color-text)]">
+					Switchy Clash Settings
+				</h1>
 				<button
 					onclick={handleThemeToggle}
 					class="inline-flex items-center gap-2 px-3 py-2 rounded-lg bg-[var(--color-bg-secondary)] hover:bg-[var(--color-bg-tertiary)] transition-colors border border-[var(--color-border)]"
@@ -454,8 +439,7 @@
 					<span class="text-lg">{getThemeIcon(themeMode)}</span>
 					<span class="text-sm font-medium">{getThemeLabel(themeMode)}</span>
 				</button>
-			</div>
-		</header>
+			</header>
 
 		{#if isLoading}
 			<div class="flex items-center justify-center py-12">
@@ -750,21 +734,46 @@
 				</div>
 			</section>
 
-			<!-- Font Preview Section -->
+			<!-- Font Settings Section -->
 			<section class="mb-8">
-				<h2 class="text-lg font-medium text-[var(--color-text)] mb-2">Font Preview</h2>
+				<h2 class="text-lg font-medium text-[var(--color-text)] mb-2">Font Settings</h2>
 				<div class="bg-[var(--color-bg-secondary)] rounded-xl border border-[var(--color-border)] p-4">
-					<p class="text-sm text-[var(--color-text-secondary)] mb-3">Current font: <span class="font-medium text-[var(--color-text)]">{getFontLabel(fontFamily)}</span></p>
-					<div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-						<div class="bg-[var(--color-bg)] rounded-lg p-3 border border-[var(--color-border)]">
-							<p class="text-xs text-[var(--color-text-muted)] mb-1">Latin Text</p>
-							<p class="text-sm">The quick brown fox jumps over the lazy dog.</p>
-							<p class="text-xs text-[var(--color-text-muted)] mt-2">1234567890 !@#$%^&*()</p>
+					<div class="flex flex-col gap-4">
+						<div>
+							<label for="font-select" class="block text-sm font-medium text-[var(--color-text-secondary)] mb-1">
+								Font Family
+							</label>
+							<select
+								id="font-select"
+								value={fontFamily}
+								onchange={handleFontChange}
+								data-font={fontFamily}
+								class="w-full px-3 py-2 bg-[var(--color-bg)] border border-[var(--color-border)] rounded-lg text-[var(--color-text)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary)] transition-all"
+							>
+								{#each FONT_OPTIONS as option}
+									<option value={option.value}>{option.label}</option>
+								{/each}
+							</select>
 						</div>
-						<div class="bg-[var(--color-bg)] rounded-lg p-3 border border-[var(--color-border)]">
-							<p class="text-xs text-[var(--color-text-muted)] mb-1">Code Sample</p>
-							<p class="text-sm font-mono">const hello = "world";</p>
-							<p class="text-xs text-[var(--color-text-muted)] mt-2">function test() &#123; return true; &#125;</p>
+						<div>
+							<p class="text-sm text-[var(--color-text-secondary)] mb-2">Preview: <span class="font-medium text-[var(--color-text)]">{getFontLabel(fontFamily)}</span></p>
+							<div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+								<div class="bg-[var(--color-bg)] rounded-lg p-3 border border-[var(--color-border)]">
+									<p class="text-xs text-[var(--color-text-muted)] mb-1">Latin Text</p>
+									<p class="text-sm">The quick brown fox jumps over the lazy dog.</p>
+									<p class="text-xs text-[var(--color-text-muted)] mt-2">1234567890 !@#$%^&*()</p>
+								</div>
+								<div class="bg-[var(--color-bg)] rounded-lg p-3 border border-[var(--color-border)]">
+									<p class="text-xs text-[var(--color-text-muted)] mb-1">Code Sample</p>
+									<p class="text-sm font-mono">const hello = "world";</p>
+									<p class="text-xs text-[var(--color-text-muted)] mt-2">function test() &#123; return true; &#125;</p>
+								</div>
+								<div class="bg-[var(--color-bg)] rounded-lg p-3 border border-[var(--color-border)] md:col-span-2">
+									<p class="text-xs text-[var(--color-text-muted)] mb-1">Chinese Text</p>
+									<p class="text-sm">快速棕色狐狸跳过懒狗</p>
+									<p class="text-xs text-[var(--color-text-muted)] mt-2">天地玄黄，宇宙洪荒</p>
+								</div>
+							</div>
 						</div>
 					</div>
 				</div>

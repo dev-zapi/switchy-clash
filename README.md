@@ -1,0 +1,201 @@
+# Switchy Clash
+
+> A sleek Chrome extension for controlling your [Clash](https://github.com/MetaCubeX/mihomo) (mihomo) proxy — right from the toolbar.
+
+Built with **Svelte 5** + **Tailwind CSS 4** + **TypeScript** + **Vite 6**. Zero runtime dependencies.
+
+---
+
+## Highlights
+
+- **One-click proxy toggle** — route all browser traffic through Clash or revert to system settings instantly
+- **Multi-config management** — save multiple Clash API endpoints, auto-switch between them on startup
+- **Proxy group control** — browse all groups (Selector / URLTest / Fallback / LoadBalance / Relay), switch nodes, test latency
+- **Rule match display** — see which Clash rule matched the current tab's domain and its proxy chain
+- **Dynamic emoji icons** — each config gets its own emoji rendered as the toolbar icon via `OffscreenCanvas`
+- **Light / Dark / System themes** — seamless theme sync across popup and options pages
+- **8 font choices** — MiSans, Inter, JetBrains Mono, and more, with a live preview panel
+- **Config import / export** — share configurations as JSON with merge or replace options
+
+---
+
+## Getting Started
+
+### Prerequisites
+
+- [Node.js](https://nodejs.org/) >= 18
+- A running [Clash](https://github.com/MetaCubeX/mihomo) or mihomo instance with the External Controller API enabled
+
+### Install & Build
+
+```bash
+git clone https://github.com/user/switchy-clash.git
+cd switchy-clash
+npm install
+npm run build
+```
+
+### Load in Chrome
+
+1. Open `chrome://extensions`
+2. Enable **Developer mode** (top-right toggle)
+3. Click **Load unpacked** and select the `dist/` folder
+4. Click the Switchy Clash icon in the toolbar to get started
+
+---
+
+## Usage
+
+### Popup
+
+| Area | Description |
+|------|-------------|
+| **Header** | Active config (emoji + name), host:port, Clash version, proxy toggle |
+| **Rule Match** | Current tab's domain, matched rule + payload, proxy chain, latency |
+| **Proxy Groups** | 2-column compact cards — group name, type, node count, active node + latency, speed test |
+
+Click a **Selector** group card to open a modal where you can browse nodes, test individual latency, or switch the active node. Nodes are sorted: selected first, then by latency ascending.
+
+### Options Page
+
+- **Configurations** — add / edit / delete Clash API endpoints, each with name, emoji, host, port, secret, and bypass list
+- **Health check** — test all saved configs at once
+- **Import / Export** — backup and share configs as JSON
+- **Proxy Bypass List** — global bypass patterns (one per line)
+- **Font Settings** — choose from 8 font families with a live preview (Latin, code, and Chinese samples)
+
+---
+
+## Tech Stack
+
+| Layer | Tech |
+|-------|------|
+| UI | [Svelte 5](https://svelte.dev) (runes mode) |
+| Styling | [Tailwind CSS 4](https://tailwindcss.com) |
+| Language | [TypeScript 5](https://typescriptlang.org) |
+| Build | [Vite 6](https://vitejs.dev) |
+| Testing | [Playwright](https://playwright.dev) |
+| Runtime deps | **0** |
+
+---
+
+## Project Structure
+
+```
+src/
+├── background/index.ts        # MV3 service worker — proxy toggle, auto-switch, emoji icons
+├── popup/                     # Toolbar popup UI
+│   ├── App.svelte             # Main popup (groups, rule match, config selector)
+│   └── main.ts
+├── options/                   # Full-tab settings page
+│   ├── App.svelte             # Config management, fonts, bypass list
+│   └── main.ts
+└── lib/
+    ├── components/            # Button, Toggle, Select, Badge, StatusDot
+    ├── services/
+    │   ├── clash-api.ts       # Clash REST API client (12 endpoints)
+    │   ├── proxy.ts           # chrome.proxy.settings wrapper
+    │   ├── storage.ts         # chrome.storage.local wrapper (singleton)
+    │   └── permissions.ts     # Dynamic host permission requests
+    ├── types/                 # TypeScript interfaces + defaults
+    └── utils.ts               # Theme, font, delay formatting helpers
+```
+
+---
+
+## Scripts
+
+| Command | Description |
+|---------|-------------|
+| `npm run build` | Build extension to `dist/` |
+| `npm run check` | TypeScript + Svelte type check |
+| `npm run test` | Build + Playwright E2E tests |
+| `npm run dev` | Vite dev server (limited use for extensions) |
+
+---
+
+## Architecture
+
+### Chrome Extension (Manifest V3)
+
+- **Permissions:** `proxy`, `storage`, `activeTab`
+- **Host permissions:** `127.0.0.1` and `localhost` built-in; remote hosts requested dynamically at runtime
+- **Three entry points:** popup, options page, background service worker
+
+### Message Passing
+
+The popup and options pages communicate with the background worker via `chrome.runtime.sendMessage`:
+
+| Message | Action |
+|---------|--------|
+| `ENABLE_PROXY` | Set Chrome proxy to Clash |
+| `DISABLE_PROXY` | Revert to system proxy |
+| `TOGGLE_PROXY` | Toggle current state |
+| `CHECK_ALL_CONFIGS` | Health check all configs |
+| `GET_STATE` | Return full extension state |
+| `SWITCH_CONFIG` | Change active config |
+
+### Auto-Switch on Startup
+
+1. Health check the active config (`GET /version`, 3s timeout)
+2. If unreachable, try other configs sorted by `lastUsed`
+3. If none available and proxy was on, disable it automatically
+
+### State Management
+
+All UI state uses Svelte 5 runes (`$state`, `$derived`, `$effect`). No stores or external state libraries. Persistent state lives in `chrome.storage.local` with cross-page sync via `chrome.storage.onChanged`.
+
+> **Implementation note:** `chrome.storage` uses structured clone which cannot serialize Svelte 5's `$state` Proxy objects. The storage service strips proxies via `JSON.parse(JSON.stringify())` on every write.
+
+---
+
+## Theming
+
+12 CSS custom properties per mode, toggled via `.dark` class on `<html>`:
+
+```
+--color-bg, --color-bg-secondary, --color-bg-tertiary
+--color-text, --color-text-secondary, --color-text-muted
+--color-border, --color-primary
+--color-success, --color-warning, --color-danger
+```
+
+System mode follows `prefers-color-scheme` and updates in real-time.
+
+---
+
+## Clash API Compatibility
+
+The extension targets [mihomo](https://github.com/MetaCubeX/mihomo) (Clash.Meta) and covers these endpoints:
+
+| Method | Endpoint | Usage |
+|--------|----------|-------|
+| `GET` | `/version` | Health check |
+| `GET` | `/configs` | Read ports & mode |
+| `PATCH` | `/configs` | Update config |
+| `GET` | `/proxies` | List all groups & nodes |
+| `PUT` | `/proxies/{name}` | Switch node |
+| `GET` | `/proxies/{name}/delay` | Test node latency |
+| `GET` | `/group/{name}/delay` | Test group latency |
+| `GET` | `/rules` | Routing rules |
+| `GET` | `/connections` | Active connections |
+| `DELETE` | `/connections` | Close all |
+| `DELETE` | `/connections/{id}` | Close specific |
+
+Port detection priority: `mixed-port` > `port` > `socks-port` > `7890`.
+
+---
+
+## Contributing
+
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feat/my-feature`)
+3. Make your changes and ensure `npm run check` passes
+4. Run tests with `npm run test`
+5. Submit a pull request
+
+---
+
+## License
+
+This project is provided as-is. See the repository for license details.

@@ -651,7 +651,7 @@
           
           {@const isSelector = group.type === 'Selector'}
           <div
-            class="relative bg-[var(--color-bg-secondary)] rounded-md px-2.5 py-2 shadow hover:shadow-lg transition-shadow cursor-pointer {isSelector ? 'border border-[var(--color-primary)]/20' : ''}"
+            class="relative bg-[var(--color-bg-secondary)] rounded-md px-2.5 py-2 shadow-md hover:shadow-xl transition-shadow cursor-pointer"
           >
             <!-- Speed Test Button (top-right corner) -->
             <button

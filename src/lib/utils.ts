@@ -1,5 +1,5 @@
 // Theme utility
-import type { ThemeMode } from '$lib/types';
+import type { ThemeMode, FontFamily } from '$lib/types';
 import { storage } from '$lib/services/storage';
 
 export function getEffectiveTheme(mode: ThemeMode): 'light' | 'dark' {
@@ -12,6 +12,22 @@ export function getEffectiveTheme(mode: ThemeMode): 'light' | 'dark' {
 export function applyTheme(mode: ThemeMode): void {
   const effective = getEffectiveTheme(mode);
   document.documentElement.classList.toggle('dark', effective === 'dark');
+}
+
+export function applyFontFamily(font: FontFamily): void {
+  const fontMap: Record<FontFamily, string> = {
+    'system': 'var(--font-sans)',
+    'misans': 'var(--font-sans)',
+    'inter': 'var(--font-inter)',
+    'roboto': 'var(--font-roboto)',
+    'noto-sans': 'var(--font-noto-sans)',
+    'source-han-sans': 'var(--font-source-han-sans)',
+    'cascadia-code': 'var(--font-cascadia-code)',
+    'jetbrains-mono': 'var(--font-jetbrains-mono)',
+  };
+  
+  document.documentElement.style.setProperty('--font-family', fontMap[font]);
+  document.documentElement.setAttribute('data-font', font);
 }
 
 export async function initTheme(): Promise<ThemeMode> {
@@ -28,9 +44,18 @@ export async function initTheme(): Promise<ThemeMode> {
     if (changes.themeMode?.newValue) {
       applyTheme(changes.themeMode.newValue as ThemeMode);
     }
+    if (changes.fontFamily?.newValue) {
+      applyFontFamily(changes.fontFamily.newValue as FontFamily);
+    }
   });
 
   return mode;
+}
+
+export async function initFont(): Promise<FontFamily> {
+  const font = await storage.getFontFamily();
+  applyFontFamily(font);
+  return font;
 }
 
 export function generateId(): string {

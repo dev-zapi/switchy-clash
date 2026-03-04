@@ -3,9 +3,9 @@
   import { fade, scale } from 'svelte/transition';
   import { ClashAPI } from '$lib/services/clash-api';
   import { storage } from '$lib/services/storage';
-  import type { ExtensionConfig, ClashVersion, ProxyNode, ProxyGroup, ThemeMode, Connection } from '$lib/types';
+  import type { ExtensionConfig, ClashVersion, ProxyNode, ProxyGroup, ThemeMode, Connection, FontFamily } from '$lib/types';
   import { PROXY_GROUP_TYPES } from '$lib/types';
-  import { applyTheme, formatDelay, getDelayColor, getLatestDelay } from '$lib/utils';
+  import { applyTheme, formatDelay, getDelayColor, getLatestDelay, applyFontFamily } from '$lib/utils';
 
   // ============================================
   // State Management (Svelte 5 Runes)
@@ -26,6 +26,7 @@
   let connections = $state<Connection[]>([]);
   let isProxyEnabled = $state<boolean>(false);
   let theme = $state<ThemeMode>('system');
+  let fontFamily = $state<FontFamily>('system');
   
   // Current tab info
   let currentTabUrl = $state<string>('');
@@ -89,6 +90,13 @@
   });
   
   $effect(() => {
+    // Apply font family changes
+    if (fontFamily) {
+      applyFontFamily(fontFamily);
+    }
+  });
+  
+  $effect(() => {
     // Fetch data when API instance changes
     if (api) {
       fetchAllData();
@@ -105,17 +113,19 @@
       apiError = '';
       
       // Load all configs and settings
-      const [allConfigs, activeId, themeMode, proxyEnabled] = await Promise.all([
+      const [allConfigs, activeId, themeMode, proxyEnabled, font] = await Promise.all([
         storage.getConfigs(),
         storage.getActiveConfigId(),
         storage.getThemeMode(),
-        storage.getProxyEnabled()
+        storage.getProxyEnabled(),
+        storage.getFontFamily()
       ]);
       
       configs = Array.isArray(allConfigs) ? allConfigs : [];
       activeConfigId = activeId;
       theme = themeMode;
       isProxyEnabled = proxyEnabled;
+      fontFamily = font;
       
       // Get current tab URL
       await getCurrentTabInfo();

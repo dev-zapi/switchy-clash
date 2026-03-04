@@ -15,11 +15,14 @@ export interface ExtensionConfig {
 
 export type ThemeMode = 'light' | 'dark' | 'system';
 
+export type FontFamily = 'system' | 'misans' | 'inter' | 'roboto' | 'noto-sans' | 'source-han-sans' | 'cascadia-code' | 'jetbrains-mono';
+
 export interface ExtensionStorage {
   configs: ExtensionConfig[];
   activeConfigId: string | null;
   proxyEnabled: boolean;
   themeMode: ThemeMode;
+  fontFamily: FontFamily;
 }
 
 export const DEFAULT_BYPASS_LIST = [
@@ -47,4 +50,5 @@ export const DEFAULT_STORAGE: ExtensionStorage = {
   activeConfigId: null,
   proxyEnabled: false,
   themeMode: 'system',
+  fontFamily: 'misans',
 };

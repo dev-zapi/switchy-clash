@@ -3,9 +3,9 @@
 	import { ClashAPI } from '$lib/services/clash-api';
 	import { storage } from '$lib/services/storage';
 	import { ensureHostPermission, isLocalhostHost } from '$lib/services/permissions';
-	import type { ExtensionConfig, ThemeMode } from '$lib/types';
+	import type { ExtensionConfig, ThemeMode, FontFamily } from '$lib/types';
 	import { DEFAULT_BYPASS_LIST, DEFAULT_CONFIG } from '$lib/types';
-	import { applyTheme, generateId, initTheme } from '$lib/utils';
+	import { applyTheme, generateId, initTheme, applyFontFamily } from '$lib/utils';
 	import StatusDot from '$lib/components/StatusDot.svelte';
 
 	// Predefined emojis for configuration
@@ -14,6 +14,7 @@
 	// State management using Svelte 5 runes
 	let configs = $state<ExtensionConfig[]>([]);
 	let themeMode = $state<ThemeMode>('system');
+	let fontFamily = $state<FontFamily>('system');
 	let isLoading = $state(true);
 	let editingConfig = $state<ExtensionConfig | null>(null);
 	let isEditing = $state(false);
@@ -36,15 +37,22 @@
 		applyTheme(themeMode);
 	});
 
+	// Apply font family when it changes
+	$effect(() => {
+		applyFontFamily(fontFamily);
+	});
+
 	async function loadData(): Promise<void> {
 		try {
 			isLoading = true;
-			const [storedConfigs, storedTheme] = await Promise.all([
+			const [storedConfigs, storedTheme, storedFont] = await Promise.all([
 				storage.getConfigs(),
-				storage.getThemeMode()
+				storage.getThemeMode(),
+				storage.getFontFamily()
 			]);
 			configs = Array.isArray(storedConfigs) ? storedConfigs : [];
 			themeMode = storedTheme;
+			fontFamily = storedFont;
 			
 			// Load global bypass list from first config or use default
 			if (configs.length > 0 && configs[0].bypassList) {
@@ -351,6 +359,14 @@
 		applyTheme(nextMode);
 	}
 
+	async function handleFontChange(event: Event): Promise<void> {
+		const select = event.target as HTMLSelectElement;
+		const newFont = select.value as FontFamily;
+		fontFamily = newFont;
+		await storage.setFontFamily(newFont);
+		applyFontFamily(newFont);
+	}
+
 	async function handleGlobalBypassChange(event: Event): Promise<void> {
 		const textarea = event.target as HTMLTextAreaElement;
 		const lines = textarea.value.split('\n').map(l => l.trim()).filter(l => l);
@@ -381,6 +397,31 @@
 			case 'system': return 'System';
 		}
 	}
+
+	function getFontLabel(font: FontFamily): string {
+		const labels: Record<FontFamily, string> = {
+			'system': 'System Default',
+			'misans': 'MiSans',
+			'inter': 'Inter',
+			'roboto': 'Roboto',
+			'noto-sans': 'Noto Sans',
+			'source-han-sans': 'Source Han Sans',
+			'cascadia-code': 'Cascadia Code',
+			'jetbrains-mono': 'JetBrains Mono'
+		};
+		return labels[font];
+	}
+
+	const FONT_OPTIONS: { value: FontFamily; label: string; sample: string }[] = [
+		{ value: 'misans', label: 'MiSans', sample: '快速棕色狐狸跳过懒狗' },
+		{ value: 'system', label: 'System Default', sample: 'The quick brown fox' },
+		{ value: 'inter', label: 'Inter', sample: 'The quick brown fox' },
+		{ value: 'roboto', label: 'Roboto', sample: 'The quick brown fox' },
+		{ value: 'noto-sans', label: 'Noto Sans', sample: 'The quick brown fox' },
+		{ value: 'source-han-sans', label: 'Source Han Sans', sample: '快速棕色狐狸' },
+		{ value: 'cascadia-code', label: 'Cascadia Code', sample: 'const x = 42;' },
+		{ value: 'jetbrains-mono', label: 'JetBrains Mono', sample: 'function test()' }
+	];
 </script>
 
 <div class="min-h-screen bg-[var(--color-bg)] text-[var(--color-text)]">
@@ -390,14 +431,30 @@
 			<h1 class="text-2xl font-semibold text-[var(--color-text)]">
 				Switchy Clash Settings
 			</h1>
-			<button
-				onclick={handleThemeToggle}
-				class="inline-flex items-center gap-2 px-3 py-2 rounded-lg bg-[var(--color-bg-secondary)] hover:bg-[var(--color-bg-tertiary)] transition-colors border border-[var(--color-border)]"
-				title="Toggle theme (current: {getThemeLabel(themeMode)})"
-			>
-				<span class="text-lg">{getThemeIcon(themeMode)}</span>
-				<span class="text-sm font-medium">{getThemeLabel(themeMode)}</span>
-			</button>
+			<div class="flex items-center gap-3">
+				<div class="flex flex-col items-end">
+					<label for="font-select" class="text-xs text-[var(--color-text-secondary)] mb-1">Font</label>
+					<select
+						id="font-select"
+						value={fontFamily}
+						onchange={handleFontChange}
+						data-font={fontFamily}
+						class="px-3 py-2 text-sm bg-[var(--color-bg-secondary)] border border-[var(--color-border)] rounded-lg text-[var(--color-text)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary)]"
+					>
+						{#each FONT_OPTIONS as option}
+							<option value={option.value}>{option.label}</option>
+						{/each}
+					</select>
+				</div>
+				<button
+					onclick={handleThemeToggle}
+					class="inline-flex items-center gap-2 px-3 py-2 rounded-lg bg-[var(--color-bg-secondary)] hover:bg-[var(--color-bg-tertiary)] transition-colors border border-[var(--color-border)]"
+					title="Toggle theme (current: {getThemeLabel(themeMode)})"
+				>
+					<span class="text-lg">{getThemeIcon(themeMode)}</span>
+					<span class="text-sm font-medium">{getThemeLabel(themeMode)}</span>
+				</button>
+			</div>
 		</header>
 
 		{#if isLoading}
@@ -692,6 +749,26 @@
 					</p>
 				</div>
 			</section>
+
+			<!-- Font Preview Section -->
+			<section class="mb-8">
+				<h2 class="text-lg font-medium text-[var(--color-text)] mb-2">Font Preview</h2>
+				<div class="bg-[var(--color-bg-secondary)] rounded-xl border border-[var(--color-border)] p-4">
+					<p class="text-sm text-[var(--color-text-secondary)] mb-3">Current font: <span class="font-medium text-[var(--color-text)]">{getFontLabel(fontFamily)}</span></p>
+					<div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+						<div class="bg-[var(--color-bg)] rounded-lg p-3 border border-[var(--color-border)]">
+							<p class="text-xs text-[var(--color-text-muted)] mb-1">Latin Text</p>
+							<p class="text-sm">The quick brown fox jumps over the lazy dog.</p>
+							<p class="text-xs text-[var(--color-text-muted)] mt-2">1234567890 !@#$%^&*()</p>
+						</div>
+						<div class="bg-[var(--color-bg)] rounded-lg p-3 border border-[var(--color-border)]">
+							<p class="text-xs text-[var(--color-text-muted)] mb-1">Code Sample</p>
+							<p class="text-sm font-mono">const hello = "world";</p>
+							<p class="text-xs text-[var(--color-text-muted)] mt-2">function test() &#123; return true; &#125;</p>
+						</div>
+					</div>
+				</div>
+			</section>
 		{/if}
 	</div>
 </div>
@@ -702,4 +779,14 @@
 	input[type="number"]::-webkit-outer-spin-button) {
 		opacity: 1;
 	}
+	
+	/* Font preview for select dropdown */
+	[data-font="system"] { font-family: var(--font-sans); }
+	[data-font="misans"] { font-family: var(--font-sans); }
+	[data-font="inter"] { font-family: var(--font-inter); }
+	[data-font="roboto"] { font-family: var(--font-roboto); }
+	[data-font="noto-sans"] { font-family: var(--font-noto-sans); }
+	[data-font="source-han-sans"] { font-family: var(--font-source-han-sans); }
+	[data-font="cascadia-code"] { font-family: var(--font-cascadia-code); }
+	[data-font="jetbrains-mono"] { font-family: var(--font-jetbrains-mono); }
 </style>

@@ -1,5 +1,5 @@
 // Chrome Storage Service
-import type { ExtensionConfig, ExtensionStorage, ThemeMode } from '$lib/types';
+import type { ExtensionConfig, ExtensionStorage, ThemeMode, FontFamily } from '$lib/types';
 import { DEFAULT_STORAGE } from '$lib/types';
 
 class StorageService {
@@ -103,6 +103,15 @@ class StorageService {
 
   async setThemeMode(mode: ThemeMode): Promise<void> {
     return this.set('themeMode', mode);
+  }
+
+  // Font Family
+  async getFontFamily(): Promise<FontFamily> {
+    return this.get('fontFamily');
+  }
+
+  async setFontFamily(font: FontFamily): Promise<void> {
+    return this.set('fontFamily', font);
   }
 
   // Listen for changes

@@ -93,4 +93,5 @@ export const PROXY_GROUP_TYPES: ProxyGroupType[] = [
   'URLTest',
   'LoadBalance',
   'Fallback',
+  'Relay',
 ];

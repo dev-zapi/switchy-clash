@@ -171,9 +171,10 @@
       const response = await api.getProxies();
       allProxies = response.proxies || {};
       
-      // Filter groups
+      // Filter proxy groups (exclude GLOBAL itself)
       const groups: ProxyGroup[] = [];
       for (const [name, proxy] of Object.entries(allProxies)) {
+        if (name === 'GLOBAL') continue;
         if (PROXY_GROUP_TYPES.includes(proxy.type as typeof PROXY_GROUP_TYPES[number])) {
           groups.push({
             name,
@@ -185,7 +186,23 @@
         }
       }
       
-      proxyGroups = groups.sort((a, b) => a.name.localeCompare(b.name));
+      // Sort groups by GLOBAL.all order (respects user's config file ordering)
+      // Groups listed in GLOBAL.all appear first in their defined order,
+      // groups not in GLOBAL.all are appended at the end in original order.
+      const globalProxy = allProxies['GLOBAL'];
+      const sortIndex = globalProxy?.all ?? [];
+      proxyGroups = groups.sort((a, b) => {
+        const aIndex = sortIndex.indexOf(a.name);
+        const bIndex = sortIndex.indexOf(b.name);
+        // Both not in GLOBAL.all: preserve original order
+        if (aIndex === -1 && bIndex === -1) return 0;
+        // Only a is missing: sort it after b
+        if (aIndex === -1) return 1;
+        // Only b is missing: sort it after a
+        if (bIndex === -1) return -1;
+        // Both present: sort by their index in GLOBAL.all
+        return aIndex - bIndex;
+      });
     } catch (err) {
       console.error('Failed to fetch proxy groups:', err);
     } finally {

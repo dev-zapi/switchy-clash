@@ -1,5 +1,5 @@
-@import "tailwindcss";
 @import url('https://unpkg.com/subsetted-fonts@latest/MiSans-VF/MiSans-VF.css');
+@import "tailwindcss";
 
 @theme {
   --font-sans: 'MiSans-VF', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;

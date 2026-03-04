@@ -694,157 +694,158 @@
       {/if}
     </section>
 
-    <!-- ============================================ -->
-    <!-- Expanded Group Overlay -->
-    <!-- ============================================ -->
-    {#each proxyGroups as group}
-      {#if expandedGroups.has(group.name)}
-        {@const currentNodeName = group.now}
-        <!-- Backdrop -->
-        <!-- svelte-ignore a11y_no_static_element_interactions -->
-        <div
-          class="fixed inset-0 bg-black/50 z-20"
-          transition:fade={{ duration: 150 }}
-          onclick={() => toggleGroupExpanded(group.name)}
-          onkeydown={(e) => {
-            if (e.key === 'Escape') toggleGroupExpanded(group.name);
-          }}
-        ></div>
-        
-        <!-- Modal -->
-        <div
-          class="fixed inset-0 z-30 flex items-center justify-center p-3"
-          transition:scale={{ start: 0.95, duration: 150 }}
-        >
-        <div
-          class="bg-[var(--color-bg)] rounded-xl max-h-[70vh] w-full flex flex-col border border-[var(--color-border)] shadow-xl"
-        >
-          <!-- Panel Header -->
-          <div class="flex items-center justify-between px-4 py-3 border-b border-[var(--color-border)] shrink-0">
-            <div>
-              <div class="text-sm font-semibold text-[var(--color-text)]">{group.name}</div>
-              <div class="text-xs text-[var(--color-text-secondary)]">{group.type} · {group.all?.length || 0} nodes</div>
-            </div>
-            <div class="flex items-center gap-2">
-              <button
-                onclick={() => testGroupLatency(group.name)}
-                disabled={testingLatencyGroups.has(group.name)}
-          class="text-xs px-2 py-1 rounded-md shadow bg-[var(--color-bg-secondary)] text-[var(--color-text-secondary)] hover:bg-[var(--color-bg-tertiary)] transition-colors"
-              >
-                {testingLatencyGroups.has(group.name) ? '⏳ Testing...' : '⚡ Test All'}
-              </button>
-              <button
-                onclick={() => toggleGroupExpanded(group.name)}
-                class="text-sm p-1 rounded hover:bg-[var(--color-bg-secondary)] text-[var(--color-text-secondary)] transition-colors"
-              >
-                ✕
-              </button>
-            </div>
-          </div>
-          
-          <!-- Node List -->
-          <div class="overflow-y-auto flex-1 p-2">
-            {#each getSortedNodes(group) as nodeName}
-              {@const isSelected = nodeName === currentNodeName}
-              {@const delay = getNodeLatency(nodeName)}
-              {@const isSelector = group.type === 'Selector'}
-              {#if isSelector}
-                <!-- Selector: clickable node for switching -->
-                <!-- svelte-ignore a11y_no_static_element_interactions a11y_click_events_have_key_events -->
-                <div
-                  onclick={() => {
-                    if (!isSelected && !switchingNodes.has(nodeName)) switchProxyNode(group.name, nodeName);
-                  }}
-                  onkeydown={(e) => {
-                    if (e.key === 'Enter' || e.key === ' ') {
-                      if (!isSelected && !switchingNodes.has(nodeName)) switchProxyNode(group.name, nodeName);
-                    }
-                  }}
-                  role="option"
-                  aria-selected={isSelected}
-                  tabindex="0"
-                  class="w-full flex items-center justify-between px-3 py-2 text-xs rounded-md transition-colors cursor-pointer {isSelected 
-                    ? 'bg-[var(--color-primary)]/10 text-[var(--color-primary)]' 
-                    : 'hover:bg-[var(--color-bg-secondary)] text-[var(--color-text-secondary)]'}"
-                >
-                  <span class="truncate flex-1 text-left">{nodeName}</span>
-                  <div class="flex items-center gap-1.5 ml-2 shrink-0">
-                    {#if switchingNodes.has(nodeName)}
-                      <span class="animate-spin">⏳</span>
-                    {:else if delay !== null && delay > 0}
-                      <span class="{getDelayColor(delay)}">{delay}ms</span>
-                    {:else if testingLatencyNodes.has(nodeName)}
-                      <span class="animate-spin">⏳</span>
-                    {:else}
-                      <span
-                        role="button"
-                        tabindex="0"
-                        onclick={(e) => {
-                          e.stopPropagation();
-                          testNodeLatency(nodeName);
-                        }}
-                        onkeydown={(e) => {
-                          if (e.key === 'Enter' || e.key === ' ') {
-                            e.stopPropagation();
-                            testNodeLatency(nodeName);
-                          }
-                        }}
-                        class="p-0.5 rounded hover:bg-[var(--color-bg-tertiary)] cursor-pointer"
-                      >
-                        ⚡
-                      </span>
-                    {/if}
-                    {#if isSelected}
-                      <span class="text-[var(--color-primary)]">✓</span>
-                    {/if}
-                  </div>
-                </div>
-              {:else}
-                <!-- Non-selector: read-only node display -->
-                <div
-                  class="w-full flex items-center justify-between px-3 py-2 text-xs rounded-md {isSelected 
-                    ? 'bg-[var(--color-primary)]/10 text-[var(--color-primary)]' 
-                    : 'text-[var(--color-text-secondary)]'}"
-                >
-                  <span class="truncate flex-1 text-left">{nodeName}</span>
-                  <div class="flex items-center gap-1.5 ml-2 shrink-0">
-                    {#if delay !== null && delay > 0}
-                      <span class="{getDelayColor(delay)}">{delay}ms</span>
-                    {:else if testingLatencyNodes.has(nodeName)}
-                      <span class="animate-spin">⏳</span>
-                    {:else}
-                      <span
-                        role="button"
-                        tabindex="0"
-                        onclick={(e) => {
-                          e.stopPropagation();
-                          testNodeLatency(nodeName);
-                        }}
-                        onkeydown={(e) => {
-                          if (e.key === 'Enter' || e.key === ' ') {
-                            e.stopPropagation();
-                            testNodeLatency(nodeName);
-                          }
-                        }}
-                        class="p-0.5 rounded hover:bg-[var(--color-bg-tertiary)] cursor-pointer"
-                      >
-                        ⚡
-                      </span>
-                    {/if}
-                    {#if isSelected}
-                      <span class="text-[var(--color-primary)]">✓</span>
-                    {/if}
-                  </div>
-                </div>
-              {/if}
-            {/each}
-          </div>
-        </div>
-        </div>
-      {/if}
-    {/each}
   {/if}
 </div>
+
+<!-- ============================================ -->
+<!-- Expanded Group Modal (outside main container to avoid overflow clipping) -->
+<!-- ============================================ -->
+{#each proxyGroups as group}
+  {#if expandedGroups.has(group.name)}
+    {@const currentNodeName = group.now}
+    <!-- Backdrop -->
+    <!-- svelte-ignore a11y_no_static_element_interactions -->
+    <div
+      class="fixed inset-0 bg-black/50 z-20"
+      transition:fade={{ duration: 150 }}
+      onclick={() => toggleGroupExpanded(group.name)}
+      onkeydown={(e) => {
+        if (e.key === 'Escape') toggleGroupExpanded(group.name);
+      }}
+    ></div>
+    
+    <!-- Modal -->
+    <div
+      class="fixed inset-0 z-30 flex items-center justify-center p-3 pointer-events-none"
+      transition:scale={{ start: 0.95, duration: 150 }}
+    >
+      <div
+        class="bg-[var(--color-bg)] rounded-xl max-h-[70vh] w-full flex flex-col border border-[var(--color-border)] shadow-xl pointer-events-auto"
+      >
+        <!-- Modal Header -->
+        <div class="flex items-center justify-between px-4 py-3 border-b border-[var(--color-border)] shrink-0">
+          <div>
+            <div class="text-sm font-semibold text-[var(--color-text)]">{group.name}</div>
+            <div class="text-xs text-[var(--color-text-secondary)]">{group.type} · {group.all?.length || 0} nodes</div>
+          </div>
+          <div class="flex items-center gap-2">
+            <button
+              onclick={() => testGroupLatency(group.name)}
+              disabled={testingLatencyGroups.has(group.name)}
+              class="text-xs px-2 py-1 rounded-md shadow bg-[var(--color-bg-secondary)] text-[var(--color-text-secondary)] hover:bg-[var(--color-bg-tertiary)] transition-colors"
+            >
+              {testingLatencyGroups.has(group.name) ? '⏳ Testing...' : '⚡ Test All'}
+            </button>
+            <button
+              onclick={() => toggleGroupExpanded(group.name)}
+              class="text-sm p-1 rounded hover:bg-[var(--color-bg-secondary)] text-[var(--color-text-secondary)] transition-colors"
+            >
+              ✕
+            </button>
+          </div>
+        </div>
+        
+        <!-- Node List -->
+        <div class="overflow-y-auto flex-1 p-2">
+          {#each getSortedNodes(group) as nodeName}
+            {@const isSelected = nodeName === currentNodeName}
+            {@const delay = getNodeLatency(nodeName)}
+            {@const isSelector = group.type === 'Selector'}
+            {#if isSelector}
+              <!-- Selector: clickable node for switching -->
+              <!-- svelte-ignore a11y_no_static_element_interactions a11y_click_events_have_key_events -->
+              <div
+                onclick={() => {
+                  if (!isSelected && !switchingNodes.has(nodeName)) switchProxyNode(group.name, nodeName);
+                }}
+                onkeydown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    if (!isSelected && !switchingNodes.has(nodeName)) switchProxyNode(group.name, nodeName);
+                  }
+                }}
+                role="option"
+                aria-selected={isSelected}
+                tabindex="0"
+                class="w-full flex items-center justify-between px-3 py-2 text-xs rounded-md transition-colors cursor-pointer {isSelected 
+                  ? 'bg-[var(--color-primary)]/10 text-[var(--color-primary)]' 
+                  : 'hover:bg-[var(--color-bg-secondary)] text-[var(--color-text-secondary)]'}"
+              >
+                <span class="truncate flex-1 text-left">{nodeName}</span>
+                <div class="flex items-center gap-1.5 ml-2 shrink-0">
+                  {#if switchingNodes.has(nodeName)}
+                    <span class="animate-spin">⏳</span>
+                  {:else if delay !== null && delay > 0}
+                    <span class="{getDelayColor(delay)}">{delay}ms</span>
+                  {:else if testingLatencyNodes.has(nodeName)}
+                    <span class="animate-spin">⏳</span>
+                  {:else}
+                    <span
+                      role="button"
+                      tabindex="0"
+                      onclick={(e) => {
+                        e.stopPropagation();
+                        testNodeLatency(nodeName);
+                      }}
+                      onkeydown={(e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                          e.stopPropagation();
+                          testNodeLatency(nodeName);
+                        }
+                      }}
+                      class="p-0.5 rounded hover:bg-[var(--color-bg-tertiary)] cursor-pointer"
+                    >
+                      ⚡
+                    </span>
+                  {/if}
+                  {#if isSelected}
+                    <span class="text-[var(--color-primary)]">✓</span>
+                  {/if}
+                </div>
+              </div>
+            {:else}
+              <!-- Non-selector: read-only node display -->
+              <div
+                class="w-full flex items-center justify-between px-3 py-2 text-xs rounded-md {isSelected 
+                  ? 'bg-[var(--color-primary)]/10 text-[var(--color-primary)]' 
+                  : 'text-[var(--color-text-secondary)]'}"
+              >
+                <span class="truncate flex-1 text-left">{nodeName}</span>
+                <div class="flex items-center gap-1.5 ml-2 shrink-0">
+                  {#if delay !== null && delay > 0}
+                    <span class="{getDelayColor(delay)}">{delay}ms</span>
+                  {:else if testingLatencyNodes.has(nodeName)}
+                    <span class="animate-spin">⏳</span>
+                  {:else}
+                    <span
+                      role="button"
+                      tabindex="0"
+                      onclick={(e) => {
+                        e.stopPropagation();
+                        testNodeLatency(nodeName);
+                      }}
+                      onkeydown={(e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                          e.stopPropagation();
+                          testNodeLatency(nodeName);
+                        }
+                      }}
+                      class="p-0.5 rounded hover:bg-[var(--color-bg-tertiary)] cursor-pointer"
+                    >
+                      ⚡
+                    </span>
+                  {/if}
+                  {#if isSelected}
+                    <span class="text-[var(--color-primary)]">✓</span>
+                  {/if}
+                </div>
+              </div>
+            {/if}
+          {/each}
+        </div>
+      </div>
+    </div>
+  {/if}
+{/each}
 
 <style>
   /* Custom scrollbar for the popup */

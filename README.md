@@ -19,15 +19,16 @@
 
 ## Why Switchy Clash?
 
-If you run a [Clash](https://github.com/MetaCubeX/mihomo) (mihomo) proxy locally, you know the pain: switching nodes means opening a dashboard, toggling the proxy means digging into system settings, and managing multiple instances is a chore.
+你的 [Clash](https://github.com/MetaCubeX/mihomo) (mihomo) 跑在旁路由、主路由或远程服务器上？或者你只是在本地用 mihomo 内核，不想装 Electron 客户端或其他图形界面浪费内存和磁盘？
 
-**Switchy Clash** puts all of that in one popup — toggle proxy, switch nodes, check latency, see which rule matched your current tab — in two clicks from the Chrome toolbar. No dashboard tab. No system preferences. No context switching.
+**Switchy Clash** 让你直接在 Chrome 工具栏完成一切 — 切换节点、测延迟、查看当前页面命中了哪条规则 — 两次点击，不需要打开任何 Dashboard 页面，不需要安装任何桌面客户端。
 
 ### Who is this for?
 
-- Developers who route traffic through different proxies for testing / debugging
-- Users managing multiple Clash instances (home, office, VPS, ...)
-- Anyone who wants fast, visual control over their Clash proxy without leaving the browser
+- **旁路由 / 主路由 / 远程服务器用户** — Clash 跑在网关或 VPS 上，需要一个轻量的远程控制面板
+- **拒绝臃肿客户端的人** — 只用 mihomo 内核，不想装 Clash Verge / Clash for Windows 等 Electron 应用，省下几百 MB 内存和磁盘
+- **多实例管理者** — 家里、办公室、VPS 各一套 Clash，需要在它们之间快速切换
+- **追求效率的人** — 不想离开浏览器，不想开额外的 Tab 或窗口，只想用最少的操作控制代理
 
 ---
 

@@ -39,7 +39,6 @@
   let isTogglingProxy = $state<boolean>(false);
   let testingLatencyGroups = $state<Set<string>>(new Set());
   let testingLatencyNodes = $state<Set<string>>(new Set());
-  let switchingNodes = $state<Set<string>>(new Set());
   
   // Error states
   let apiError = $state<string>('');
@@ -270,22 +269,16 @@
     if (!api) return;
     
     try {
-      switchingNodes.add(nodeName);
-      switchingNodes = switchingNodes; // Trigger reactivity
-      
       await api.switchProxy(groupName, nodeName);
+      
+      // Close the overlay immediately after successful switch
+      expandedGroups.delete(groupName);
+      expandedGroups = expandedGroups;
       
       // Refresh groups to show updated selection
       await fetchProxyGroups();
-      
-      // Close the overlay after successful switch
-      expandedGroups.delete(groupName);
-      expandedGroups = expandedGroups;
     } catch (err) {
       console.error('Failed to switch proxy:', err);
-    } finally {
-      switchingNodes.delete(nodeName);
-      switchingNodes = switchingNodes;
     }
   }
   
@@ -784,11 +777,11 @@
               <!-- svelte-ignore a11y_no_static_element_interactions a11y_click_events_have_key_events -->
               <div
                 onclick={() => {
-                  if (!isSelected && !switchingNodes.has(nodeName)) switchProxyNode(group.name, nodeName);
+                  if (!isSelected) switchProxyNode(group.name, nodeName);
                 }}
                 onkeydown={(e) => {
                   if (e.key === 'Enter' || e.key === ' ') {
-                    if (!isSelected && !switchingNodes.has(nodeName)) switchProxyNode(group.name, nodeName);
+                    if (!isSelected) switchProxyNode(group.name, nodeName);
                   }
                 }}
                 role="option"
@@ -800,9 +793,7 @@
               >
                 <span class="truncate flex-1 text-left">{nodeName}</span>
                 <div class="flex items-center gap-1.5 ml-2 shrink-0">
-                  {#if switchingNodes.has(nodeName)}
-                    <span class="animate-spin">⏳</span>
-                  {:else if delay !== null && delay > 0}
+                  {#if delay !== null && delay > 0}
                     <span class="{getDelayColor(delay)}">{delay}ms</span>
                   {:else if testingLatencyNodes.has(nodeName)}
                     <span class="animate-spin">⏳</span>

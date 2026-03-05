@@ -38,7 +38,13 @@ export class ClashAPI {
       const error = await res.json().catch(() => ({ message: res.statusText }));
       throw new Error(error.message || `API error: ${res.status}`);
     }
-    return res.json();
+    // Some endpoints (PUT/DELETE) return 204 No Content with empty body
+    if (res.status === 204 || res.headers.get('content-length') === '0') {
+      return undefined as T;
+    }
+    const text = await res.text();
+    if (!text) return undefined as T;
+    return JSON.parse(text);
   }
 
   // System Info

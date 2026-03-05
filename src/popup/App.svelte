@@ -27,6 +27,7 @@
   let isProxyEnabled = $state<boolean>(false);
   let theme = $state<ThemeMode>('system');
   let fontFamily = $state<FontFamily>('system');
+  let customFontFamily = $state<string>('');
   
   // Current tab info
   let currentTabUrl = $state<string>('');
@@ -91,7 +92,7 @@
   $effect(() => {
     // Apply font family changes
     if (fontFamily) {
-      applyFontFamily(fontFamily);
+      applyFontFamily(fontFamily, customFontFamily);
     }
   });
   
@@ -112,12 +113,13 @@
       apiError = '';
       
       // Load all configs and settings
-      const [allConfigs, activeId, themeMode, proxyEnabled, font] = await Promise.all([
+      const [allConfigs, activeId, themeMode, proxyEnabled, font, customFont] = await Promise.all([
         storage.getConfigs(),
         storage.getActiveConfigId(),
         storage.getThemeMode(),
         storage.getProxyEnabled(),
-        storage.getFontFamily()
+        storage.getFontFamily(),
+        storage.getCustomFontFamily()
       ]);
       
       configs = Array.isArray(allConfigs) ? allConfigs : [];
@@ -125,6 +127,7 @@
       theme = themeMode;
       isProxyEnabled = proxyEnabled;
       fontFamily = font;
+      customFontFamily = customFont;
       
       // Get current tab URL
       await getCurrentTabInfo();

@@ -15,6 +15,7 @@
 	let configs = $state<ExtensionConfig[]>([]);
 	let themeMode = $state<ThemeMode>('system');
 	let fontFamily = $state<FontFamily>('system');
+	let customFontFamily = $state<string>('');
 	let isLoading = $state(true);
 	let editingConfig = $state<ExtensionConfig | null>(null);
 	let isEditing = $state(false);
@@ -39,20 +40,22 @@
 
 	// Apply font family when it changes
 	$effect(() => {
-		applyFontFamily(fontFamily);
+		applyFontFamily(fontFamily, customFontFamily);
 	});
 
 	async function loadData(): Promise<void> {
 		try {
 			isLoading = true;
-			const [storedConfigs, storedTheme, storedFont] = await Promise.all([
+			const [storedConfigs, storedTheme, storedFont, storedCustomFont] = await Promise.all([
 				storage.getConfigs(),
 				storage.getThemeMode(),
-				storage.getFontFamily()
+				storage.getFontFamily(),
+				storage.getCustomFontFamily()
 			]);
 			configs = Array.isArray(storedConfigs) ? storedConfigs : [];
 			themeMode = storedTheme;
 			fontFamily = storedFont;
+			customFontFamily = storedCustomFont;
 			
 			// Load global bypass list from first config or use default
 			if (configs.length > 0 && configs[0].bypassList) {
@@ -364,7 +367,14 @@
 		const newFont = select.value as FontFamily;
 		fontFamily = newFont;
 		await storage.setFontFamily(newFont);
-		applyFontFamily(newFont);
+		applyFontFamily(newFont, customFontFamily);
+	}
+
+	async function handleCustomFontChange(event: Event): Promise<void> {
+		const input = event.target as HTMLInputElement;
+		customFontFamily = input.value;
+		await storage.setCustomFontFamily(input.value);
+		applyFontFamily(fontFamily, input.value);
 	}
 
 	async function handleGlobalBypassChange(event: Event): Promise<void> {
@@ -407,7 +417,8 @@
 			'noto-sans': 'Noto Sans',
 			'source-han-sans': 'Source Han Sans',
 			'cascadia-code': 'Cascadia Code',
-			'jetbrains-mono': 'JetBrains Mono'
+			'jetbrains-mono': 'JetBrains Mono',
+			'custom': 'Custom'
 		};
 		return labels[font];
 	}
@@ -420,7 +431,8 @@
 		{ value: 'noto-sans', label: 'Noto Sans', sample: 'The quick brown fox' },
 		{ value: 'source-han-sans', label: 'Source Han Sans', sample: '快速棕色狐狸' },
 		{ value: 'cascadia-code', label: 'Cascadia Code', sample: 'const x = 42;' },
-		{ value: 'jetbrains-mono', label: 'JetBrains Mono', sample: 'function test()' }
+		{ value: 'jetbrains-mono', label: 'JetBrains Mono', sample: 'function test()' },
+		{ value: 'custom', label: 'Custom', sample: 'Custom fonts' }
 	];
 </script>
 
@@ -745,6 +757,9 @@
 								<li>Popup panel (proxy names, groups, latency)</li>
 								<li>Options page (all UI text)</li>
 							</ul>
+							<p class="mt-2">
+								Select <strong class="text-[var(--color-text)]">Custom</strong> to enter your own font stack in CSS format.
+							</p>
 						</div>
 						<div>
 							<label for="font-select" class="block text-sm font-medium text-[var(--color-text-secondary)] mb-1">
@@ -762,9 +777,27 @@
 								{/each}
 							</select>
 						</div>
+						{#if fontFamily === 'custom'}
+							<div>
+								<label for="custom-font-input" class="block text-sm font-medium text-[var(--color-text-secondary)] mb-1">
+									Custom Font Family
+								</label>
+								<input
+									id="custom-font-input"
+									type="text"
+									value={customFontFamily}
+									oninput={handleCustomFontChange}
+									placeholder="e.g., 'Inter', 'Roboto', sans-serif"
+									class="w-full px-3 py-2 bg-[var(--color-bg)] border border-[var(--color-border)] rounded-lg text-[var(--color-text)] placeholder:text-[var(--color-text-muted)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary)] transition-all font-mono text-sm"
+								/>
+								<p class="mt-1 text-xs text-[var(--color-text-muted)]">
+									Enter font names in CSS format, comma-separated. Example: <code class="px-1 py-0.5 bg-[var(--color-bg-tertiary)] rounded">'Inter', 'Helvetica Neue', sans-serif</code>
+								</p>
+							</div>
+						{/if}
 						<div>
-							<p class="text-sm text-[var(--color-text-secondary)] mb-2">Preview: <span class="font-medium text-[var(--color-text)]">{getFontLabel(fontFamily)}</span></p>
-							<div class="grid grid-cols-1 md:grid-cols-2 gap-3" style="font-family: var(--font-family, var(--font-sans));">
+							<p class="text-sm text-[var(--color-text-secondary)] mb-2">Preview: <span class="font-medium text-[var(--color-text)]">{fontFamily === 'custom' ? (customFontFamily || 'Not set') : getFontLabel(fontFamily)}</span></p>
+							<div class="grid grid-cols-1 md:grid-cols-2 gap-3" style="font-family: {fontFamily === 'custom' && customFontFamily ? customFontFamily : 'var(--font-family, var(--font-sans))'};">
 								<div class="bg-[var(--color-bg)] rounded-lg p-3 border border-[var(--color-border)]">
 									<p class="text-xs text-[var(--color-text-muted)] mb-1">Latin Text</p>
 									<p class="text-sm">The quick brown fox jumps over the lazy dog.</p>

@@ -14,19 +14,27 @@ export function applyTheme(mode: ThemeMode): void {
   document.documentElement.classList.toggle('dark', effective === 'dark');
 }
 
-export function applyFontFamily(font: FontFamily): void {
-  const fontMap: Record<FontFamily, string> = {
-    'system': 'var(--font-sans)',
-    'misans': 'var(--font-sans)',
-    'inter': 'var(--font-inter)',
-    'roboto': 'var(--font-roboto)',
-    'noto-sans': 'var(--font-noto-sans)',
-    'source-han-sans': 'var(--font-source-han-sans)',
-    'cascadia-code': 'var(--font-cascadia-code)',
-    'jetbrains-mono': 'var(--font-jetbrains-mono)',
-  };
+export function applyFontFamily(font: FontFamily, customFont?: string): void {
+  let fontFamily: string;
   
-  document.documentElement.style.setProperty('--font-family', fontMap[font]);
+  if (font === 'custom' && customFont && customFont.trim()) {
+    fontFamily = customFont;
+  } else {
+    const fontMap: Record<FontFamily, string> = {
+      'system': 'var(--font-sans)',
+      'misans': 'var(--font-sans)',
+      'inter': 'var(--font-inter)',
+      'roboto': 'var(--font-roboto)',
+      'noto-sans': 'var(--font-noto-sans)',
+      'source-han-sans': 'var(--font-source-han-sans)',
+      'cascadia-code': 'var(--font-cascadia-code)',
+      'jetbrains-mono': 'var(--font-jetbrains-mono)',
+      'custom': 'var(--font-sans)',
+    };
+    fontFamily = fontMap[font];
+  }
+  
+  document.documentElement.style.setProperty('--font-family', fontFamily);
   document.documentElement.setAttribute('data-font', font);
 }
 
@@ -44,8 +52,11 @@ export async function initTheme(): Promise<ThemeMode> {
     if (changes.themeMode?.newValue) {
       applyTheme(changes.themeMode.newValue as ThemeMode);
     }
-    if (changes.fontFamily?.newValue) {
-      applyFontFamily(changes.fontFamily.newValue as FontFamily);
+    if (changes.fontFamily?.newValue || changes.customFontFamily?.newValue) {
+      applyFontFamily(
+        changes.fontFamily?.newValue as FontFamily,
+        changes.customFontFamily?.newValue as string
+      );
     }
   });
 
@@ -54,7 +65,8 @@ export async function initTheme(): Promise<ThemeMode> {
 
 export async function initFont(): Promise<FontFamily> {
   const font = await storage.getFontFamily();
-  applyFontFamily(font);
+  const customFont = await storage.getCustomFontFamily();
+  applyFontFamily(font, customFont);
   return font;
 }
 

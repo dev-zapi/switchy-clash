@@ -114,6 +114,14 @@ class StorageService {
     return this.set('fontFamily', font);
   }
 
+  async getCustomFontFamily(): Promise<string> {
+    return this.get('customFontFamily');
+  }
+
+  async setCustomFontFamily(font: string): Promise<void> {
+    return this.set('customFontFamily', font);
+  }
+
   // Listen for changes
   onChanged(
     callback: (changes: Record<string, chrome.storage.StorageChange>) => void,

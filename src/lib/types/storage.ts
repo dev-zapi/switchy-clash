@@ -15,7 +15,7 @@ export interface ExtensionConfig {
 
 export type ThemeMode = 'light' | 'dark' | 'system';
 
-export type FontFamily = 'system' | 'misans' | 'inter' | 'roboto' | 'noto-sans' | 'source-han-sans' | 'cascadia-code' | 'jetbrains-mono';
+export type FontFamily = 'system' | 'misans' | 'inter' | 'roboto' | 'noto-sans' | 'source-han-sans' | 'cascadia-code' | 'jetbrains-mono' | 'custom';
 
 export interface ExtensionStorage {
   configs: ExtensionConfig[];
@@ -23,6 +23,7 @@ export interface ExtensionStorage {
   proxyEnabled: boolean;
   themeMode: ThemeMode;
   fontFamily: FontFamily;
+  customFontFamily: string;
 }
 
 export const DEFAULT_BYPASS_LIST = [
@@ -51,4 +52,5 @@ export const DEFAULT_STORAGE: ExtensionStorage = {
   proxyEnabled: false,
   themeMode: 'system',
   fontFamily: 'misans',
+  customFontFamily: '',
 };

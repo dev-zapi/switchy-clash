@@ -6,7 +6,6 @@
 	import type { ExtensionConfig, ThemeMode, FontFamily } from '$lib/types';
 	import { DEFAULT_BYPASS_LIST, DEFAULT_CONFIG } from '$lib/types';
 	import { applyTheme, generateId, initTheme, applyFontFamily } from '$lib/utils';
-	import StatusDot from '$lib/components/StatusDot.svelte';
 
 	// Predefined emojis for configuration
 	const EMOJIS = ['🏠', '🏢', '💻', '🖥️', '📱', '🌐', '⚡', '🔒', '🚀', '📡', '🌍', '🔧'];
@@ -482,12 +481,12 @@
 				{:else}
 					<div class="space-y-3">
 						{#each configs as config (config.id)}
-							<div class="bg-[var(--color-bg-secondary)] rounded-xl border border-[var(--color-border)] p-5 transition-all hover:border-[var(--color-primary)]/50">
-								<div class="flex items-start justify-between">
-									<div class="flex items-start gap-3">
+							<div class="bg-[var(--color-bg-secondary)] rounded-xl border border-[var(--color-border)] p-4 transition-all hover:border-[var(--color-primary)]/50">
+								<div class="flex items-center justify-between">
+									<div class="flex items-center gap-3">
 										<span class="text-2xl" title="Configuration icon">{config.emoji}</span>
-										<div>
-								<div class="flex items-center gap-3">
+										<div class="flex flex-col gap-0.5">
+											<div class="flex items-center gap-2">
 												<h3 class="font-medium text-[var(--color-text)]">
 													{config.name}
 												</h3>
@@ -496,16 +495,13 @@
 														Default
 													</span>
 												{/if}
-											</div>
-											<p class="text-sm text-[var(--color-text-secondary)] mt-0.5">
-												{config.host}:{config.port}
-											</p>
-											<div class="flex items-center gap-2 mt-2">
-												<StatusDot status={config.status} />
 												<span class="text-xs text-[var(--color-text-muted)] capitalize">
-													{config.status === 'available' ? '🟢 Available' : config.status === 'unavailable' ? '🔴 Unavailable' : '⚪ Unknown'}
+													{config.status === 'available' ? '🟢' : config.status === 'unavailable' ? '🔴' : '⚪'}
 												</span>
 											</div>
+											<p class="text-xs text-[var(--color-text-secondary)]">
+												{config.host}:{config.port}
+											</p>
 										</div>
 									</div>
 									<div class="flex items-center gap-2">

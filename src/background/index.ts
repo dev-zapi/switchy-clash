@@ -27,7 +27,7 @@ function emojiToImageData(emoji: string, size: number): ImageData {
   const canvas = new OffscreenCanvas(size, size);
   const ctx = canvas.getContext('2d')!;
   ctx.clearRect(0, 0, size, size);
-  ctx.font = `${Math.round(size * 0.75)}px sans-serif`;
+  ctx.font = `${Math.round(size * 1.0)}px sans-serif`;
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
   ctx.fillText(emoji, size / 2, size / 2);

@@ -13,6 +13,10 @@
 [![Zero Dependencies](https://img.shields.io/badge/Runtime_Deps-0-brightgreen)](#tech-stack)
 [![License](https://img.shields.io/badge/License-MIT-yellow?logo=opensourceinitiative&logoColor=white)](#license)
 
+![Popup](https://private-user-images.githubusercontent.com/4549584/559670237-355e5f94-17b6-47c2-b07c-1ea2f0ba5592.png?jwt=eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJnaXRodWIuY29tIiwiYXVkIjoicmF3LmdpdGh1YnVzZXJjb250ZW50LmNvbSIsImtleSI6ImtleTUiLCJleHAiOjE3NzI4NzA1MDgsIm5iZiI6MTc3Mjg3MDIwOCwicGF0aCI6Ii80NTQ5NTg0LzU1OTY3MDIzNy0zNTVlNWY5NC0xN2I2LTQ3YzItYjA3Yy0xZWEyZjBiYTU1OTIucG5nP1gtQW16LUFsZ29yaXRobT1BV1M0LUhNQUMtU0hBMjU2JlgtQW16LUNyZWRlbnRpYWw9QUtJQVZDT0RZTFNBNTNQUUs0WkElMkYyMDI2MDMwNyUyRnVzLWVhc3QtMSUyRnMzJTJGYXdzNF9yZXF1ZXN0JlgtQW16LURhdGU9MjAyNjAzMDdUMDc1NjQ4WiZYLUFtei1FeHBpcmVzPTMwMCZYLUFtei1TaWduYXR1cmU9ZGIyZTUxMzc4ODIyY2NmMGZmMWY3MjU0OGM1YmRhNjM0ODExMzZkYzE4NTllZTBiYjU5OGViMzY0YjYxYzZlMSZYLUFtei1TaWduZWRIZWFkZXJzPWhvc3QifQ.fbsv0OJhGG4Lz193kckCBNrm6gettc9f6NHzrJ834u4)
+
+[Screenshots](https://github.com/dev-zapi/switchy-clash/wiki/Screenshots)
+
 </div>
 
 ---

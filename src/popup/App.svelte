@@ -6,6 +6,8 @@
   import type { ExtensionConfig, ClashVersion, ProxyNode, ProxyGroup, ThemeMode, Connection, FontFamily } from '$lib/types';
   import { PROXY_GROUP_TYPES } from '$lib/types';
   import { applyTheme, formatDelay, getDelayColor, getLatestDelay, applyFontFamily } from '$lib/utils';
+  import Skeleton from '$lib/components/Skeleton.svelte';
+  import SkeletonGroup from '$lib/components/SkeletonGroup.svelte';
 
   // ============================================
   // State Management (Svelte 5 Runes)
@@ -35,8 +37,9 @@
   
   // Loading states
   let isLoading = $state<boolean>(true);
-  let isLoadingGroups = $state<boolean>(false);
-  let isLoadingConnections = $state<boolean>(false);
+  let isLoadingVersion = $state<boolean>(true);
+  let isLoadingGroups = $state<boolean>(true);
+  let isLoadingConnections = $state<boolean>(true);
   let isTogglingProxy = $state<boolean>(false);
   let testingLatencyGroups = $state<Set<string>>(new Set());
   let testingLatencyNodes = $state<Set<string>>(new Set());
@@ -112,7 +115,7 @@
       isLoading = true;
       apiError = '';
       
-      // Load all configs and settings
+      // Load all configs and settings - non-blocking
       const [allConfigs, activeId, themeMode, proxyEnabled, font, customFont] = await Promise.all([
         storage.getConfigs(),
         storage.getActiveConfigId(),
@@ -129,12 +132,13 @@
       fontFamily = font;
       customFontFamily = customFont;
       
-      // Get current tab URL
+      // Get current tab URL - non-blocking
       await getCurrentTabInfo();
       
       // Initialize API if we have an active config
       if (activeConfig) {
         api = new ClashAPI(activeConfig.host, activeConfig.port, activeConfig.secret);
+        // Data fetching is triggered by $effect when api changes
       }
     } catch (err) {
       apiError = err instanceof Error ? err.message : 'Failed to initialize';
@@ -158,6 +162,7 @@
   async function fetchAllData() {
     if (!api) return;
     
+    // Fetch all data in parallel with individual loading states
     await Promise.all([
       fetchVersion(),
       fetchProxyGroups(),
@@ -167,11 +172,14 @@
   
   async function fetchVersion() {
     try {
+      isLoadingVersion = true;
       apiError = '';
       version = await api!.getVersion();
     } catch (err) {
       apiError = 'Failed to connect to Clash';
       console.error('Failed to fetch version:', err);
+    } finally {
+      isLoadingVersion = false;
     }
   }
   
@@ -440,14 +448,8 @@
 <!-- ============================================ -->
 <div class="w-[420px] max-h-[550px] overflow-y-auto bg-[var(--color-bg)] text-[var(--color-text)] font-sans">
   
-  <!-- Loading State -->
-  {#if isLoading}
-    <div class="flex items-center justify-center h-40">
-      <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-[var(--color-primary)]"></div>
-    </div>
-  
   <!-- No Config State -->
-  {:else if !hasConfigs}
+  {#if !isLoading && !hasConfigs}
     <div class="flex flex-col items-center justify-center p-8 text-center">
       <div class="text-4xl mb-4">⚙️</div>
       <h2 class="text-lg font-semibold mb-2 text-[var(--color-text)]">No Configuration</h2>
@@ -471,81 +473,96 @@
       <div class="flex items-center justify-between mb-2">
         <!-- Left: Active Config Info -->
         <div class="flex flex-col min-w-0">
-          <div class="flex items-center gap-1.5">
+              {#if isLoading}
+                <div class="flex items-center gap-1.5">
+                  <Skeleton variant="circular" width="16px" height="16px" />
+                  <Skeleton variant="text" width="100px" />
+                </div>
+                <div class="mt-1"><Skeleton variant="text" width="150px" /></div>
+              {:else}
+            <div class="flex items-center gap-1.5">
+              {#if activeConfig}
+                <span class="text-base">{activeConfig.emoji}</span>
+                <span class="text-sm font-bold text-[var(--color-text)] truncate">{activeConfig.name}</span>
+              {:else}
+                <span class="text-sm font-bold text-[var(--color-text)]">No Config</span>
+              {/if}
+              {#if getVersionBadge()}
+                <span class="px-1.5 py-0.5 text-[10px] bg-[var(--color-primary)]/10 text-[var(--color-primary)] rounded-full font-medium shrink-0">
+                  {getVersionBadge()}
+                </span>
+              {/if}
+            </div>
             {#if activeConfig}
-              <span class="text-base">{activeConfig.emoji}</span>
-              <span class="text-sm font-bold text-[var(--color-text)] truncate">{activeConfig.name}</span>
-            {:else}
-              <span class="text-sm font-bold text-[var(--color-text)]">No Config</span>
-            {/if}
-            {#if getVersionBadge()}
-              <span class="px-1.5 py-0.5 text-[10px] bg-[var(--color-primary)]/10 text-[var(--color-primary)] rounded-full font-medium shrink-0">
-                {getVersionBadge()}
+              <span class="text-xs text-[var(--color-text-muted)] truncate">
+                {activeConfig.host}:{activeConfig.port}
+                {#if version?.version}
+                  <span class="ml-1">{version.version}</span>
+                {/if}
+                {#if isProxyEnabled}
+                  <span class="text-green-500 ml-1">Proxy On</span>
+                {/if}
               </span>
             {/if}
-          </div>
-          {#if activeConfig}
-            <span class="text-xs text-[var(--color-text-muted)] truncate">
-              {activeConfig.host}:{activeConfig.port}
-              {#if version?.version}
-                <span class="ml-1">{version.version}</span>
-              {/if}
-              {#if isProxyEnabled}
-                <span class="text-green-500 ml-1">Proxy On</span>
-              {/if}
-            </span>
           {/if}
         </div>
         
         <!-- Right: Action Buttons -->
         <div class="flex items-center gap-2">
-          <!-- Proxy Toggle -->
-          <button
-            onclick={toggleProxy}
-            disabled={isTogglingProxy}
-            class="w-9 h-9 flex items-center justify-center rounded-md shadow transition-colors {isProxyEnabled 
-              ? 'bg-green-500/10 text-green-500 hover:bg-green-500/20' 
-              : 'bg-[var(--color-bg-secondary)] text-[var(--color-text-secondary)] hover:bg-[var(--color-bg-tertiary)]'}"
-            title={isProxyEnabled ? 'Disable Proxy' : 'Enable Proxy'}
-          >
-            {#if isTogglingProxy}
-              <span class="animate-spin inline-block">⏳</span>
-            {:else}
-              <span>{isProxyEnabled ? '✓' : '⚪'}</span>
-            {/if}
-          </button>
-          
-          <!-- Settings -->
-          <button
-            onclick={openSettings}
-            class="w-9 h-9 flex items-center justify-center rounded-md shadow bg-[var(--color-bg-secondary)] text-[var(--color-text-secondary)] hover:bg-[var(--color-bg-tertiary)] transition-colors"
-            title="Settings"
-          >
-            ⚙️
-          </button>
-          
-          <!-- Dashboard -->
-          <button
-            onclick={openDashboard}
-            class="w-9 h-9 flex items-center justify-center rounded-md shadow bg-[var(--color-bg-secondary)] text-[var(--color-text-secondary)] hover:bg-[var(--color-bg-tertiary)] transition-colors"
-            title="Open Dashboard"
-          >
-            📊
-          </button>
-          
-          <!-- Theme Toggle -->
-          <button
-            onclick={toggleTheme}
-            class="w-9 h-9 flex items-center justify-center rounded-md shadow bg-[var(--color-bg-secondary)] text-[var(--color-text-secondary)] hover:bg-[var(--color-bg-tertiary)] transition-colors"
-            title="Toggle Theme ({theme})"
-          >
-            {getThemeIcon()}
-          </button>
+          {#if isLoading}
+            <Skeleton variant="circular" width="36px" height="36px" />
+            <Skeleton variant="circular" width="36px" height="36px" />
+            <Skeleton variant="circular" width="36px" height="36px" />
+            <Skeleton variant="circular" width="36px" height="36px" />
+          {:else}
+            <!-- Proxy Toggle -->
+            <button
+              onclick={toggleProxy}
+              disabled={isTogglingProxy}
+              class="w-9 h-9 flex items-center justify-center rounded-md shadow transition-colors {isProxyEnabled 
+                ? 'bg-green-500/10 text-green-500 hover:bg-green-500/20' 
+                : 'bg-[var(--color-bg-secondary)] text-[var(--color-text-secondary)] hover:bg-[var(--color-bg-tertiary)]'}"
+              title={isProxyEnabled ? 'Disable Proxy' : 'Enable Proxy'}
+            >
+              {#if isTogglingProxy}
+                <span class="animate-spin inline-block">⏳</span>
+              {:else}
+                <span>{isProxyEnabled ? '✓' : '⚪'}</span>
+              {/if}
+            </button>
+            
+            <!-- Settings -->
+            <button
+              onclick={openSettings}
+              class="w-9 h-9 flex items-center justify-center rounded-md shadow bg-[var(--color-bg-secondary)] text-[var(--color-text-secondary)] hover:bg-[var(--color-bg-tertiary)] transition-colors"
+              title="Settings"
+            >
+              ⚙️
+            </button>
+            
+            <!-- Dashboard -->
+            <button
+              onclick={openDashboard}
+              class="w-9 h-9 flex items-center justify-center rounded-md shadow bg-[var(--color-bg-secondary)] text-[var(--color-text-secondary)] hover:bg-[var(--color-bg-tertiary)] transition-colors"
+              title="Open Dashboard"
+            >
+              📊
+            </button>
+            
+            <!-- Theme Toggle -->
+            <button
+              onclick={toggleTheme}
+              class="w-9 h-9 flex items-center justify-center rounded-md shadow bg-[var(--color-bg-secondary)] text-[var(--color-text-secondary)] hover:bg-[var(--color-bg-tertiary)] transition-colors"
+              title="Toggle Theme ({theme})"
+            >
+              {getThemeIcon()}
+            </button>
+          {/if}
         </div>
       </div>
       
       <!-- Config Selector -->
-      {#if hasMultipleConfigs}
+      {#if !isLoading && hasMultipleConfigs}
         <div class="mt-3">
           <select
             value={activeConfigId || ''}
@@ -571,56 +588,77 @@
     <!-- Row 2: Rule Match -->
     <!-- ============================================ -->
     <section class="px-3 py-2 border-b border-[var(--color-border)]">
-      <div class="flex flex-col gap-1.5">
-        <!-- Row 1: Domain + Rule -->
-        <div class="flex items-center justify-between gap-2">
-          <div class="flex items-center gap-1.5 min-w-0">
-            <span class="text-sm shrink-0">🌐</span>
-            <span class="text-xs font-medium text-[var(--color-text)] truncate">
-              {currentTabDomain}
-            </span>
-          </div>
-          {#if matchedConnection}
-            <div class="flex items-center gap-1.5 shrink-0">
-              <span class="text-xs px-1.5 py-0.5 bg-[var(--color-primary)]/10 text-[var(--color-primary)] rounded">
-                {matchedConnection.rule}
-              </span>
-              {#if matchedConnection.rulePayload}
-                <span class="text-xs text-[var(--color-text-secondary)]">
-                  {matchedConnection.rulePayload}
-                </span>
-              {/if}
+      {#if isLoading || isLoadingConnections}
+        <div class="flex flex-col gap-1.5">
+          <!-- Row 1: Domain + Rule - Loading -->
+          <div class="flex items-center justify-between gap-2">
+            <div class="flex items-center gap-1.5">
+              <Skeleton variant="circular" width="16px" height="16px" />
+              <Skeleton variant="text" width="120px" />
             </div>
-          {/if}
-        </div>
-        <!-- Row 2: Connection Status + Proxy Node -->
-        <div class="flex items-center justify-between gap-2">
-          <div class="flex items-center gap-1.5">
-            <span class="text-sm">{matchedConnection ? '🟢' : '⚪'}</span>
-            <span class="text-xs text-[var(--color-text-secondary)]">
-              {matchedConnection ? 'Connected' : 'No Connection'}
-            </span>
+            <Skeleton variant="text" width="80px" />
           </div>
-          {#if matchedConnection}
-            <div class="flex items-center gap-1.5 text-xs">
-              <span>🚀</span>
-              <span class="font-medium text-[var(--color-text)]">
-                {matchedConnection.chains?.[0] || 'Direct'}
+          <!-- Row 2: Connection Status - Loading -->
+          <div class="flex items-center justify-between gap-2">
+            <div class="flex items-center gap-1.5">
+              <Skeleton variant="circular" width="12px" height="12px" />
+              <Skeleton variant="text" width="80px" />
+            </div>
+            <Skeleton variant="text" width="100px" />
+          </div>
+        </div>
+      {:else}
+        <div class="flex flex-col gap-1.5">
+          <!-- Row 1: Domain + Rule -->
+          <div class="flex items-center justify-between gap-2">
+            <div class="flex items-center gap-1.5 min-w-0">
+              <span class="text-sm shrink-0">🌐</span>
+              <span class="text-xs font-medium text-[var(--color-text)] truncate">
+                {currentTabDomain}
               </span>
-              {#if matchedConnection.chains && matchedConnection.chains.length > 0}
-                {@const delay = getNodeLatency(matchedConnection.chains[0])}
-                {#if delay !== null}
-                  <span class="{getDelayColor(delay)}">
-                    ({formatDelay(delay)})
+            </div>
+            {#if matchedConnection}
+              <div class="flex items-center gap-1.5 shrink-0">
+                <span class="text-xs px-1.5 py-0.5 bg-[var(--color-primary)]/10 text-[var(--color-primary)] rounded">
+                  {matchedConnection.rule}
+                </span>
+                {#if matchedConnection.rulePayload}
+                  <span class="text-xs text-[var(--color-text-secondary)]">
+                    {matchedConnection.rulePayload}
                   </span>
                 {/if}
-              {/if}
+              </div>
+            {/if}
+          </div>
+          <!-- Row 2: Connection Status + Proxy Node -->
+          <div class="flex items-center justify-between gap-2">
+            <div class="flex items-center gap-1.5">
+              <span class="text-sm">{matchedConnection ? '🟢' : '⚪'}</span>
+              <span class="text-xs text-[var(--color-text-secondary)]">
+                {matchedConnection ? 'Connected' : 'No Connection'}
+              </span>
             </div>
-          {:else}
-            <span class="text-xs text-[var(--color-text-secondary)]">No rule matched</span>
-          {/if}
+            {#if matchedConnection}
+              <div class="flex items-center gap-1.5 text-xs">
+                <span>🚀</span>
+                <span class="font-medium text-[var(--color-text)]">
+                  {matchedConnection.chains?.[0] || 'Direct'}
+                </span>
+                {#if matchedConnection.chains && matchedConnection.chains.length > 0}
+                  {@const delay = getNodeLatency(matchedConnection.chains[0])}
+                  {#if delay !== null}
+                    <span class="{getDelayColor(delay)}">
+                      ({formatDelay(delay)})
+                    </span>
+                  {/if}
+                {/if}
+              </div>
+            {:else}
+              <span class="text-xs text-[var(--color-text-secondary)]">No rule matched</span>
+            {/if}
+          </div>
         </div>
-      </div>
+      {/if}
     </section>
 
     <!-- ============================================ -->
@@ -640,78 +678,85 @@
       
       <!-- 2-Column Grid -->
       <div class="grid grid-cols-2 gap-2">
-        {#each proxyGroups as group}
-          {@const currentNodeName = group.now}
-          {@const currentNodeLatency = currentNodeName ? getNodeLatency(currentNodeName) : null}
-          {@const nodeCount = getGroupNodeCount(group)}
-          
-          {@const isSelector = group.type === 'Selector'}
-          <div
-            class="relative bg-[var(--color-bg-secondary)] rounded-md px-2.5 py-2 shadow-md hover:shadow-xl transition-shadow cursor-pointer"
-          >
-            <!-- Speed Test Button (top-right corner) -->
-            <button
-              onclick={(e) => {
-                e.stopPropagation();
-                testGroupLatency(group.name);
-              }}
-              disabled={testingLatencyGroups.has(group.name)}
-              class="absolute top-1.5 right-1.5 text-xs p-0.5 rounded hover:bg-[var(--color-bg-tertiary)] text-[var(--color-text-muted)] hover:text-[var(--color-primary)] transition-colors"
-              title="Test group latency"
-            >
-              {#if testingLatencyGroups.has(group.name)}
-                <span class="animate-spin inline-block">⏳</span>
-              {:else}
-                ⚡
-              {/if}
-            </button>
-
-            <!-- Clickable area for expanding group -->
-            <!-- svelte-ignore a11y_no_static_element_interactions a11y_click_events_have_key_events -->
+        {#if isLoadingGroups && proxyGroups.length === 0}
+          <!-- Show skeleton placeholders while loading -->
+          {#each Array(4) as _}
+            <SkeletonGroup />
+          {/each}
+        {:else}
+          {#each proxyGroups as group}
+            {@const currentNodeName = group.now}
+            {@const currentNodeLatency = currentNodeName ? getNodeLatency(currentNodeName) : null}
+            {@const nodeCount = getGroupNodeCount(group)}
+            
+            {@const isSelector = group.type === 'Selector'}
             <div
-              onclick={() => toggleGroupExpanded(group.name)}
-              onkeydown={(e) => {
-                if (e.key === 'Enter' || e.key === ' ') toggleGroupExpanded(group.name);
-              }}
-              role="button"
-              tabindex="0"
-              class="w-full text-left"
+              class="relative bg-[var(--color-bg-secondary)] rounded-md px-2.5 py-2 shadow-md hover:shadow-xl transition-shadow cursor-pointer"
             >
-              <!-- Row 1: Group Name -->
-              <div class="text-sm font-semibold text-[var(--color-text)] truncate pr-5">
-                {group.name}
-              </div>
-              
-              <!-- Row 2: Type + Node Count -->
-              <div class="text-xs text-[var(--color-text-secondary)] flex items-center gap-1">
-                {getGroupTypeLabel(group.type)} ({nodeCount.available}/{nodeCount.total})
-                {#if isSelector}
-                  <span class="text-[var(--color-primary)] opacity-60" title="Click to switch node">▾</span>
+              <!-- Speed Test Button (top-right corner) -->
+              <button
+                onclick={(e) => {
+                  e.stopPropagation();
+                  testGroupLatency(group.name);
+                }}
+                disabled={testingLatencyGroups.has(group.name)}
+                class="absolute top-1.5 right-1.5 text-xs p-0.5 rounded hover:bg-[var(--color-bg-tertiary)] text-[var(--color-text-muted)] hover:text-[var(--color-primary)] transition-colors"
+                title="Test group latency"
+              >
+                {#if testingLatencyGroups.has(group.name)}
+                  <span class="animate-spin inline-block">⏳</span>
+                {:else}
+                  ⚡
                 {/if}
-              </div>
-              
-              <!-- Row 3: Current Node + Latency -->
-              {#if currentNodeName}
-                <div class="flex items-center justify-between mt-1">
-                  <span class="text-xs text-[var(--color-text-secondary)] truncate flex-1 flex items-center gap-1">
-                    <span class="opacity-60">◉</span>
-                    {currentNodeName}
-                  </span>
-                  {#if testingLatencyGroups.has(group.name) || testingLatencyNodes.has(currentNodeName)}
-                    <span class="animate-spin text-xs ml-1 shrink-0">⏳</span>
-                  {:else if currentNodeLatency !== null && currentNodeLatency > 0}
-                    <span class="text-xs font-medium ml-1 shrink-0 {getDelayColor(currentNodeLatency)}">
-                      {currentNodeLatency}
-                    </span>
+              </button>
+
+              <!-- Clickable area for expanding group -->
+              <!-- svelte-ignore a11y_no_static_element_interactions a11y_click_events_have_key_events -->
+              <div
+                onclick={() => toggleGroupExpanded(group.name)}
+                onkeydown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') toggleGroupExpanded(group.name);
+                }}
+                role="button"
+                tabindex="0"
+                class="w-full text-left"
+              >
+                <!-- Row 1: Group Name -->
+                <div class="text-sm font-semibold text-[var(--color-text)] truncate pr-5">
+                  {group.name}
+                </div>
+                
+                <!-- Row 2: Type + Node Count -->
+                <div class="text-xs text-[var(--color-text-secondary)] flex items-center gap-1">
+                  {getGroupTypeLabel(group.type)} ({nodeCount.available}/{nodeCount.total})
+                  {#if isSelector}
+                    <span class="text-[var(--color-primary)] opacity-60" title="Click to switch node">▾</span>
                   {/if}
                 </div>
-              {/if}
+                
+                <!-- Row 3: Current Node + Latency -->
+                {#if currentNodeName}
+                  <div class="flex items-center justify-between mt-1">
+                    <span class="text-xs text-[var(--color-text-secondary)] truncate flex-1 flex items-center gap-1">
+                      <span class="opacity-60">◉</span>
+                      {currentNodeName}
+                    </span>
+                    {#if testingLatencyGroups.has(group.name) || testingLatencyNodes.has(currentNodeName)}
+                      <span class="animate-spin text-xs ml-1 shrink-0">⏳</span>
+                    {:else if currentNodeLatency !== null && currentNodeLatency > 0}
+                      <span class="text-xs font-medium ml-1 shrink-0 {getDelayColor(currentNodeLatency)}">
+                        {currentNodeLatency}
+                      </span>
+                    {/if}
+                  </div>
+                {/if}
+              </div>
             </div>
-          </div>
-        {/each}
+          {/each}
+        {/if}
       </div>
       
-      {#if proxyGroups.length === 0}
+      {#if !isLoadingGroups && proxyGroups.length === 0}
         <div class="text-center py-8 text-sm text-[var(--color-text-secondary)]">
           No proxy groups found
         </div>

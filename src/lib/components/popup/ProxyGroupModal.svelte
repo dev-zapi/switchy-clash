@@ -88,7 +88,7 @@
     transition:scale={{ start: 0.95, duration: 150 }}
   >
     <div
-      class="bg-[var(--color-bg)] rounded-xl max-h-[70vh] w-full flex flex-col border border-[var(--color-border)] shadow-xl pointer-events-auto"
+      class="bg-[var(--color-bg)] rounded-lg max-h-[70vh] w-full flex flex-col border border-[var(--color-border)] shadow-xl pointer-events-auto"
     >
       <div class="flex items-center justify-between px-4 py-3 border-b border-[var(--color-border)] shrink-0">
         <div>
@@ -166,7 +166,7 @@
                         onTestNodeLatency(nodeName);
                       }
                     }}
-                    class="p-1 rounded {
+                    class="text-xs px-2 py-1 rounded {
                       testingNodes.has(nodeName)
                         ? 'text-[var(--color-text-muted)]'
                         : failedTestNodes.has(nodeName)
@@ -215,7 +215,7 @@
                         onTestNodeLatency(nodeName);
                       }
                     }}
-                    class="p-1 rounded {
+                    class="text-xs px-2 py-1 rounded {
                       testingNodes.has(nodeName)
                         ? 'text-[var(--color-text-muted)]'
                         : failedTestNodes.has(nodeName)

@@ -1,8 +1,8 @@
-@import url('https://unpkg.com/subsetted-fonts@latest/MiSans-VF/MiSans-VF.css');
+@import url('https://unpkg.com/subsetted-fonts@1.0.4/MiSans-VF/MiSans-VF.css');
 @import "tailwindcss";
 
 @theme {
-  --font-sans: 'MiSans-VF', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+  --font-sans: 'MiSans-VF', sans-serif;
   --font-cascadia-code: 'Cascadia Code', 'Fira Code', 'Consolas', monospace;
   --font-jetbrains-mono: 'JetBrains Mono', 'Fira Code', 'Consolas', monospace;
 }

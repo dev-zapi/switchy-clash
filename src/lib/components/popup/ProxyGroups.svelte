@@ -42,6 +42,18 @@
     }
     return { available, total };
   }
+
+  function getGroupLatency(group: ProxyGroup): number | null {
+    const delays: number[] = [];
+    for (const nodeName of group.all || []) {
+      const delay = getNodeLatency(nodeName);
+      if (delay !== null && delay > 0) {
+        delays.push(delay);
+      }
+    }
+    if (delays.length === 0) return null;
+    return delays.reduce((a, b) => a + b, 0) / delays.length;
+  }
 </script>
 
 <section class="px-3 py-4 pb-5">
@@ -66,12 +78,14 @@
         {@const currentNodeName = group.now}
         {@const currentNodeLatency = currentNodeName ? getNodeLatency(currentNodeName) : null}
         {@const nodeCount = getGroupNodeCount(group)}
+        {@const groupLatency = getGroupLatency(group)}
         
         <ProxyGroupCard
           {group}
           currentNodeName={currentNodeName}
           {currentNodeLatency}
           {nodeCount}
+          {groupLatency}
           isTesting={testingLatencyGroups.has(group.name)}
           failedTest={failedTestGroups.has(group.name)}
           onTestLatency={() => onTestLatency(group.name)}

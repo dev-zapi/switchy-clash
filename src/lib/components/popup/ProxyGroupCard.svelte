@@ -8,6 +8,7 @@
     nodeCount,
     isTesting,
     failedTest,
+    groupLatency,
     onTestLatency = () => {},
     onToggleExpanded = () => {}
   }: {
@@ -17,6 +18,7 @@
     nodeCount: { available: number; total: number };
     isTesting: boolean;
     failedTest: boolean;
+    groupLatency?: number | null;
     onTestLatency?: () => void;
     onToggleExpanded?: () => void;
   } = $props();
@@ -32,6 +34,12 @@
     if (delay <= 0) return '0ms';
     if (delay < 1000) return `${delay}ms`;
     return `${(delay / 1000).toFixed(2)}s`;
+  }
+
+  function formatGroupLatency(latency: number | null): string {
+    if (latency === null || latency <= 0) return '';
+    if (latency < 1000) return `${Math.round(latency)}ms`;
+    return `${(latency / 1000).toFixed(2)}s`;
   }
 
   function getGroupTypeLabel(type: string): string {
@@ -66,6 +74,10 @@
       <span class="animate-spin inline-block">⏳</span>
     {:else if failedTest}
       ❌
+    {:else if groupLatency !== null && groupLatency !== undefined && groupLatency > 0}
+      <span class="{getDelayColor(groupLatency!)} text-xs font-medium">
+        {formatGroupLatency(groupLatency!)}
+      </span>
     {:else}
       ⚡
     {/if}

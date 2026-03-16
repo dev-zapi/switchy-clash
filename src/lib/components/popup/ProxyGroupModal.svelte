@@ -99,7 +99,7 @@
           <button
             onclick={onTestLatency}
             disabled={isTestingGroup}
-            class="text-sm px-3 py-1.5 rounded-md shadow bg-[var(--color-bg-secondary)] {
+            class="text-xs px-3 py-1.5 rounded-md shadow bg-[var(--color-bg-secondary)] {
               isTestingGroup
                 ? 'text-[var(--color-text-muted)]'
                 : failedTestGroup
@@ -112,7 +112,7 @@
             {:else if failedTestGroup}
               ❌ Failed - Retry
             {:else}
-              ⚡ Test All
+              ⚡ Speedtest All
             {/if}
           </button>
           <button

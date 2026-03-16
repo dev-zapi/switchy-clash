@@ -53,7 +53,7 @@
       onTestLatency();
     }}
     disabled={isTesting}
-    class="absolute top-1 right-1 text-sm px-1.5 py-1 rounded hover:bg-[var(--color-bg-tertiary)] {
+    class="absolute top-1 right-1 text-xs px-2 py-1 rounded-md hover:bg-[var(--color-bg-tertiary)] {
       isTesting 
         ? 'text-[var(--color-text-muted)]' 
         : failedTest
@@ -63,11 +63,11 @@
     title={failedTest ? 'Failed - Click to retry' : 'Test group latency'}
   >
     {#if isTesting}
-      <span class="animate-spin inline-block">⏳</span>
+      <span class="animate-spin inline-block">⏳</span> Testing
     {:else if failedTest}
-      ❌
+      ❌ Failed
     {:else}
-      ⚡
+      ⚡ Speedtest
     {/if}
   </button>
 

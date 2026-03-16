@@ -43,6 +43,8 @@
   let isTogglingProxy = $state<boolean>(false);
   let testingLatencyGroups = $state<Set<string>>(new Set());
   let testingLatencyNodes = $state<Set<string>>(new Set());
+  let failedTestGroups = $state<Set<string>>(new Set());
+  let failedTestNodes = $state<Set<string>>(new Set());
   
   // Error states
   let apiError = $state<string>('');
@@ -299,10 +301,11 @@
     try {
       testingLatencyGroups.add(groupName);
       testingLatencyGroups = testingLatencyGroups;
+      failedTestGroups.delete(groupName);
+      failedTestGroups = failedTestGroups;
       
       const result = await api.testGroupDelay(groupName);
       
-      // Update latencies in allProxies
       for (const [nodeName, delay] of Object.entries(result)) {
         if (allProxies[nodeName]) {
           allProxies[nodeName] = {
@@ -311,9 +314,11 @@
           };
         }
       }
-      allProxies = allProxies; // Trigger reactivity
+      allProxies = allProxies;
     } catch (err) {
       console.error('Failed to test group latency:', err);
+      failedTestGroups.add(groupName);
+      failedTestGroups = failedTestGroups;
     } finally {
       testingLatencyGroups.delete(groupName);
       testingLatencyGroups = testingLatencyGroups;
@@ -326,19 +331,22 @@
     try {
       testingLatencyNodes.add(nodeName);
       testingLatencyNodes = testingLatencyNodes;
+      failedTestNodes.delete(nodeName);
+      failedTestNodes = failedTestNodes;
       
       const result = await api.testProxyDelay(nodeName);
       
-      // Update latency in allProxies
       if (allProxies[nodeName]) {
         allProxies[nodeName] = {
           ...allProxies[nodeName],
           history: [...(allProxies[nodeName].history || []), { time: new Date().toISOString(), delay: result.delay }]
         };
-        allProxies = allProxies; // Trigger reactivity
+        allProxies = allProxies;
       }
     } catch (err) {
       console.error('Failed to test node latency:', err);
+      failedTestNodes.add(nodeName);
+      failedTestNodes = failedTestNodes;
     } finally {
       testingLatencyNodes.delete(nodeName);
       testingLatencyNodes = testingLatencyNodes;
@@ -700,11 +708,19 @@
                   testGroupLatency(group.name);
                 }}
                 disabled={testingLatencyGroups.has(group.name)}
-                class="absolute top-1.5 right-1.5 text-xs p-0.5 rounded hover:bg-[var(--color-bg-tertiary)] text-[var(--color-text-muted)] hover:text-[var(--color-primary)] transition-colors"
-                title="Test group latency"
+                class="absolute top-1 right-1 text-sm px-1.5 py-1 rounded hover:bg-[var(--color-bg-tertiary)] {
+                  testingLatencyGroups.has(group.name) 
+                    ? 'text-[var(--color-text-muted)]' 
+                    : failedTestGroups.has(group.name)
+                      ? 'text-red-500 hover:text-red-600'
+                      : 'text-[var(--color-text-muted)] hover:text-[var(--color-primary)]'
+                } transition-colors"
+                title={failedTestGroups.has(group.name) ? 'Failed - Click to retry' : 'Test group latency'}
               >
                 {#if testingLatencyGroups.has(group.name)}
                   <span class="animate-spin inline-block">⏳</span>
+                {:else if failedTestGroups.has(group.name)}
+                  ❌
                 {:else}
                   ⚡
                 {/if}
@@ -801,9 +817,21 @@
             <button
               onclick={() => testGroupLatency(group.name)}
               disabled={testingLatencyGroups.has(group.name)}
-              class="text-xs px-2 py-1 rounded-md shadow bg-[var(--color-bg-secondary)] text-[var(--color-text-secondary)] hover:bg-[var(--color-bg-tertiary)] transition-colors"
+              class="text-sm px-3 py-1.5 rounded-md shadow bg-[var(--color-bg-secondary)] {
+                testingLatencyGroups.has(group.name)
+                  ? 'text-[var(--color-text-muted)]'
+                  : failedTestGroups.has(group.name)
+                    ? 'text-red-500 hover:bg-red-500/10'
+                    : 'text-[var(--color-text-secondary)] hover:bg-[var(--color-bg-tertiary)]'
+              } transition-colors"
             >
-              {testingLatencyGroups.has(group.name) ? '⏳ Testing...' : '⚡ Test All'}
+              {#if testingLatencyGroups.has(group.name)}
+                ⏳ Testing...
+              {:else if failedTestGroups.has(group.name)}
+                ❌ Failed - Retry
+              {:else}
+                ⚡ Test All
+              {/if}
             </button>
             <button
               onclick={() => toggleGroupExpanded(group.name)}
@@ -859,9 +887,22 @@
                           testNodeLatency(nodeName);
                         }
                       }}
-                      class="p-0.5 rounded hover:bg-[var(--color-bg-tertiary)] cursor-pointer"
+                      class="p-1 rounded {
+                        testingLatencyNodes.has(nodeName)
+                          ? 'text-[var(--color-text-muted)]'
+                          : failedTestNodes.has(nodeName)
+                            ? 'text-red-500 hover:bg-red-500/10'
+                            : 'hover:bg-[var(--color-bg-tertiary)] cursor-pointer'
+                      }"
+                      title={failedTestNodes.has(nodeName) ? 'Failed - Click to retry' : 'Test latency'}
                     >
-                      ⚡
+                      {#if testingLatencyNodes.has(nodeName)}
+                        <span class="animate-spin">⏳</span>
+                      {:else if failedTestNodes.has(nodeName)}
+                        ❌
+                      {:else}
+                        ⚡
+                      {/if}
                     </span>
                   {/if}
                   {#if isSelected}
@@ -896,9 +937,22 @@
                           testNodeLatency(nodeName);
                         }
                       }}
-                      class="p-0.5 rounded hover:bg-[var(--color-bg-tertiary)] cursor-pointer"
+                      class="p-1 rounded {
+                        testingLatencyNodes.has(nodeName)
+                          ? 'text-[var(--color-text-muted)]'
+                          : failedTestNodes.has(nodeName)
+                            ? 'text-red-500 hover:bg-red-500/10'
+                            : 'hover:bg-[var(--color-bg-tertiary)] cursor-pointer'
+                      }"
+                      title={failedTestNodes.has(nodeName) ? 'Failed - Click to retry' : 'Test latency'}
                     >
-                      ⚡
+                      {#if testingLatencyNodes.has(nodeName)}
+                        <span class="animate-spin">⏳</span>
+                      {:else if failedTestNodes.has(nodeName)}
+                        ❌
+                      {:else}
+                        ⚡
+                      {/if}
                     </span>
                   {/if}
                   {#if isSelected}

@@ -142,12 +142,12 @@
               role="option"
               aria-selected={isSelected}
               tabindex="0"
-              class="w-full flex items-center justify-between px-3 py-2 text-xs rounded-md transition-colors cursor-pointer {isSelected 
+              class="w-full flex items-center justify-between px-3 py-1.5 text-xs rounded-md transition-colors cursor-pointer {isSelected 
                 ? 'bg-[var(--color-primary)]/10 text-[var(--color-primary)]' 
                 : 'hover:bg-[var(--color-bg-secondary)] text-[var(--color-text-secondary)]'}"
             >
               <span class="truncate flex-1 text-left">{nodeName}</span>
-              <div class="flex items-center gap-1.5 ml-2 shrink-0">
+              <div class="flex items-center gap-1 ml-2 shrink-0">
                 {#if delay !== null && delay > 0}
                   <span class="{getDelayColor(delay)}">{formatDelay(delay)}</span>
                 {:else if testingNodes.has(nodeName)}
@@ -191,12 +191,12 @@
             </div>
           {:else}
             <div
-              class="w-full flex items-center justify-between px-3 py-2 text-xs rounded-md {isSelected 
+              class="w-full flex items-center justify-between px-3 py-1.5 text-xs rounded-md {isSelected 
                 ? 'bg-[var(--color-primary)]/10 text-[var(--color-primary)]' 
                 : 'text-[var(--color-text-secondary)]'}"
             >
               <span class="truncate flex-1 text-left">{nodeName}</span>
-              <div class="flex items-center gap-1.5 ml-2 shrink-0">
+              <div class="flex items-center gap-1 ml-2 shrink-0">
                 {#if delay !== null && delay > 0}
                   <span class="{getDelayColor(delay)}">{formatDelay(delay)}</span>
                 {:else if testingNodes.has(nodeName)}

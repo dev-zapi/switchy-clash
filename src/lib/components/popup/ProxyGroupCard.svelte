@@ -1,0 +1,110 @@
+<script lang="ts">
+  import type { ProxyGroup } from '$lib/types';
+
+  let {
+    group,
+    currentNodeName,
+    currentNodeLatency,
+    nodeCount,
+    isTesting,
+    failedTest,
+    onTestLatency = () => {},
+    onToggleExpanded = () => {}
+  }: {
+    group: ProxyGroup;
+    currentNodeName: string;
+    currentNodeLatency: number | null;
+    nodeCount: { available: number; total: number };
+    isTesting: boolean;
+    failedTest: boolean;
+    onTestLatency?: () => void;
+    onToggleExpanded?: () => void;
+  } = $props();
+
+  function getDelayColor(delay: number): string {
+    if (delay <= 0) return 'text-[var(--color-text-muted)]';
+    if (delay < 200) return 'text-green-500';
+    if (delay < 500) return 'text-yellow-500';
+    return 'text-red-500';
+  }
+
+  function formatDelay(delay: number): string {
+    if (delay <= 0) return '0ms';
+    if (delay < 1000) return `${delay}ms`;
+    return `${(delay / 1000).toFixed(2)}s`;
+  }
+
+  function getGroupTypeLabel(type: string): string {
+    switch (type) {
+      case 'Selector': return 'Selector';
+      case 'URLTest': return 'URLTest';
+      case 'Fallback': return 'Fallback';
+      case 'LoadBalance': return 'LoadBalance';
+      case 'Relay': return 'Relay';
+      default: return type;
+    }
+  }
+</script>
+
+<div class="relative bg-[var(--color-bg-secondary)] rounded-md px-2.5 py-2 shadow-md hover:shadow-xl transition-shadow cursor-pointer">
+  <button
+    onclick={(e) => {
+      e.stopPropagation();
+      onTestLatency();
+    }}
+    disabled={isTesting}
+    class="absolute top-1 right-1 text-sm px-1.5 py-1 rounded hover:bg-[var(--color-bg-tertiary)] {
+      isTesting 
+        ? 'text-[var(--color-text-muted)]' 
+        : failedTest
+          ? 'text-red-500 hover:text-red-600'
+          : 'text-[var(--color-text-muted)] hover:text-[var(--color-primary)]'
+    } transition-colors"
+    title={failedTest ? 'Failed - Click to retry' : 'Test group latency'}
+  >
+    {#if isTesting}
+      <span class="animate-spin inline-block">⏳</span>
+    {:else if failedTest}
+      ❌
+    {:else}
+      ⚡
+    {/if}
+  </button>
+
+  <div
+    onclick={onToggleExpanded}
+    onkeydown={(e) => {
+      if (e.key === 'Enter' || e.key === ' ') onToggleExpanded();
+    }}
+    role="button"
+    tabindex="0"
+    class="w-full text-left"
+  >
+    <div class="text-sm font-semibold text-[var(--color-text)] truncate pr-5">
+      {group.name}
+    </div>
+    
+    <div class="text-xs text-[var(--color-text-secondary)] flex items-center gap-1">
+      {getGroupTypeLabel(group.type)} ({nodeCount.available}/{nodeCount.total})
+      {#if group.type === 'Selector'}
+        <span class="text-[var(--color-primary)] opacity-60" title="Click to switch node">▾</span>
+      {/if}
+    </div>
+    
+    {#if currentNodeName}
+      <div class="flex items-center justify-between mt-1">
+        <span class="text-xs text-[var(--color-text-secondary)] truncate flex-1 flex items-center gap-1">
+          <span class="opacity-60">◉</span>
+          {currentNodeName}
+        </span>
+        {#if isTesting}
+          <span class="animate-spin text-xs ml-1 shrink-0">⏳</span>
+        {:else if currentNodeLatency !== null && currentNodeLatency > 0}
+          <span class="text-xs font-medium ml-1 shrink-0 {getDelayColor(currentNodeLatency)}">
+            {formatDelay(currentNodeLatency)}
+          </span>
+        {/if}
+      </div>
+    {/if}
+  </div>
+</div>

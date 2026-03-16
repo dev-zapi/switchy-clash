@@ -33,7 +33,7 @@
     }
   });
 
-  const computedStyles = $derived(`${baseStyles} ${variantStyles} ${width ? `w-[${width}]` : ''} ${height ? `h-[${height}]` : ''}`);
+  const computedStyles = $derived(`${baseStyles} ${variantStyles} ${width ? `w-[${width.replace('%', '')}%]` : ''} ${height ? `h-[${height.replace('%', '')}%]` : ''}`);
 </script>
 
 <div class={computedStyles}></div>

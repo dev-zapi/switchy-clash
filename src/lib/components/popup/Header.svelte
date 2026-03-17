@@ -145,7 +145,7 @@
           disabled={isTogglingProxy}
           class="w-14 h-9 flex items-center justify-center rounded-md shadow-md border-2 transition-all {isProxyEnabled 
             ? 'bg-[var(--color-success)] border-[var(--color-success)] text-white hover:brightness-110' 
-            : 'bg-[var(--color-text-muted)] border-[var(--color-text-muted)] text-white hover:brightness-110'}"
+            : 'bg-[var(--color-bg-secondary)] border-[var(--color-border)] text-[var(--color-text-secondary)] hover:bg-[var(--color-bg-tertiary)] hover:text-[var(--color-text)]'}"
           title={isProxyEnabled ? 'Disable Proxy' : 'Enable Proxy'}
         >
           {#if isTogglingProxy}

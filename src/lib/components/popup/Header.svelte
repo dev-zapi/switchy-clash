@@ -8,6 +8,7 @@
   let {
     activeConfig,
     version,
+    proxyPort,
     isProxyEnabled,
     isLoading,
     theme,
@@ -25,6 +26,7 @@
   }: {
     activeConfig?: ExtensionConfig;
     version?: ClashVersion | null;
+    proxyPort?: number | null;
     isProxyEnabled: boolean;
     isLoading: boolean;
     theme: ThemeMode;
@@ -81,10 +83,13 @@
               {/if}
             </div>
             <span class="text-xs text-[var(--color-text-muted)] truncate">
-              {activeConfig.host}:{activeConfig.port}
+              API: {activeConfig.host}:{activeConfig.port}
               {#if version?.version}
                 <span class="ml-1">{version.version}</span>
               {/if}
+            </span>
+            <span class="text-xs text-[var(--color-text-secondary)] truncate">
+              代理：{activeConfig?.proxyType === 'socks' ? 'SOCKS5' : 'HTTP'}://{activeConfig?.host}:{proxyPort ?? '...'}
             </span>
           {:else}
             <!-- Multiple Configs: With dropdown -->
@@ -98,10 +103,13 @@
               {/if}
             </div>
             <span class="text-xs text-[var(--color-text-muted)] truncate">
-              {activeConfig.host}:{activeConfig.port}
+              API: {activeConfig.host}:{activeConfig.port}
               {#if version?.version}
                 <span class="ml-1">{version.version}</span>
               {/if}
+            </span>
+            <span class="text-xs text-[var(--color-text-secondary)] truncate">
+              代理：{activeConfig?.proxyType === 'socks' ? 'SOCKS5' : 'HTTP'}://{activeConfig?.host}:{proxyPort ?? '...'}
             </span>
           {/if}
         {:else}

@@ -83,14 +83,20 @@ async function enableProxy(): Promise<{ success: boolean; error?: string }> {
   try {
     const api = getAPI(config);
     const clashConfig = await api.getConfig();
-    const proxyPort = ProxyService.getProxyPort(clashConfig);
+    const proxyPort = ProxyService.getProxyPort(clashConfig, config.proxyType);
+    
+    if (!ProxyService.hasAvailablePort(clashConfig, config.proxyType)) {
+      await storage.updateConfig(config.id, { status: 'useless' });
+      return { success: false, error: 'No available proxy port in Clash configuration' };
+    }
+    
     // Dynamically add the Clash API host to bypass list so API traffic
     // is not routed through the proxy it controls
     const bypassList = [...(config.bypassList ?? DEFAULT_BYPASS_LIST)];
     if (!bypassList.includes(config.host)) {
       bypassList.push(config.host);
     }
-    await ProxyService.enable(config.host, proxyPort, bypassList);
+    await ProxyService.enable(config.host, proxyPort, config.proxyType, bypassList);
     await storage.setProxyEnabled(true);
     await updateIcon(true, false, config.emoji);
     // Update config status
@@ -124,9 +130,16 @@ async function checkAllConfigs(): Promise<void> {
   for (const config of configs) {
     const api = getAPI(config);
     const available = await api.healthCheck();
-    await storage.updateConfig(config.id, {
-      status: available ? 'available' : 'unavailable',
-    });
+    
+    if (available) {
+      const clashConfig = await api.getConfig();
+      const hasPort = ProxyService.hasAvailablePort(clashConfig, config.proxyType);
+      await storage.updateConfig(config.id, {
+        status: hasPort ? 'available' : 'useless',
+      });
+    } else {
+      await storage.updateConfig(config.id, { status: 'unavailable' });
+    }
   }
 }
 
@@ -144,8 +157,10 @@ async function autoSwitch(): Promise<void> {
       const api = getAPI(activeConfig);
       const available = await api.healthCheck();
       if (available) {
-        await storage.updateConfig(activeConfig.id, { status: 'available' });
-        return; // Current config is fine
+        const clashConfig = await api.getConfig();
+        const hasPort = ProxyService.hasAvailablePort(clashConfig, activeConfig.proxyType);
+        await storage.updateConfig(activeConfig.id, { status: hasPort ? 'available' : 'useless' });
+        if (hasPort) return; // Current config is fine
       }
       await storage.updateConfig(activeConfig.id, { status: 'unavailable' });
     }
@@ -157,10 +172,16 @@ async function autoSwitch(): Promise<void> {
     if (!(await hasHostPermission(config.host))) continue;
     const api = getAPI(config);
     const available = await api.healthCheck();
-    await storage.updateConfig(config.id, {
-      status: available ? 'available' : 'unavailable',
-    });
+    
+    let status: 'available' | 'unavailable' | 'useless' = 'unavailable';
     if (available) {
+      const clashConfig = await api.getConfig();
+      const hasPort = ProxyService.hasAvailablePort(clashConfig, config.proxyType);
+      status = hasPort ? 'available' : 'useless';
+    }
+    
+    await storage.updateConfig(config.id, { status });
+    if (status === 'available') {
       await storage.setActiveConfigId(config.id);
       // Re-enable proxy if it was enabled
       const wasEnabled = await storage.getProxyEnabled();

@@ -1,5 +1,7 @@
 // Extension storage types
 
+export type ProxyType = 'http' | 'socks';
+
 export interface ExtensionConfig {
   id: string;
   name: string;
@@ -10,7 +12,8 @@ export interface ExtensionConfig {
   bypassList?: string[];
   isDefault: boolean;
   lastUsed: number;
-  status: 'unknown' | 'available' | 'unavailable';
+  status: 'unknown' | 'available' | 'unavailable' | 'useless';
+  proxyType: ProxyType;
 }
 
 export type ThemeMode = 'light' | 'dark' | 'system';
@@ -44,6 +47,7 @@ export const DEFAULT_CONFIG: ExtensionConfig = {
   isDefault: true,
   lastUsed: 0,
   status: 'unknown',
+  proxyType: 'http',
 };
 
 export const DEFAULT_STORAGE: ExtensionStorage = {

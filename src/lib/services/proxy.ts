@@ -16,12 +16,14 @@ export class ProxyService {
       ? bypassList
       : DEFAULT_BYPASS_LIST;
 
+    const chromeProxyType = proxyType === 'socks' ? 'socks5' : proxyType;
+
     const params = {
       value: {
         mode: 'fixed_servers',
         rules: {
           singleProxy: {
-            scheme: proxyType,
+            scheme: chromeProxyType,
             host: proxyHost,
             port: proxyPort,
           },
@@ -85,13 +87,31 @@ export class ProxyService {
 
   /**
    * Determine the proxy port from Clash config.
-   * Priority: mixed-port > port > socks-port
+   * Priority: mixed-port > port/socks-port (based on type)
+   * Returns 0 if no suitable port found.
    */
   static getProxyPort(config: {
     'mixed-port'?: number;
     port?: number;
     'socks-port'?: number;
-  }): number {
-    return config['mixed-port'] || config.port || config['socks-port'] || 7890;
+  }, proxyType: ProxyType = 'http'): number {
+    if (config['mixed-port']) {
+      return config['mixed-port'];
+    }
+    if (proxyType === 'socks') {
+      return config['socks-port'] || config.port || 0;
+    }
+    return config.port || config['socks-port'] || 0;
+  }
+
+  /**
+   * Check if config has any available port.
+   */
+  static hasAvailablePort(config: {
+    'mixed-port'?: number;
+    port?: number;
+    'socks-port'?: number;
+  }, proxyType: ProxyType = 'http'): boolean {
+    return this.getProxyPort(config, proxyType) > 0;
   }
 }

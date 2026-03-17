@@ -18,6 +18,7 @@
   
   let api = $state<ClashAPI | null>(null);
   let version = $state<ClashVersion | null>(null);
+  let proxyPort = $state<number | null>(null);
   let proxyGroups = $state<ProxyGroup[]>([]);
   let allProxies = $state<Record<string, ProxyNode>>({});
   let connections = $state<Connection[]>([]);
@@ -82,6 +83,7 @@
   $effect(() => {
     if (api) {
       fetchVersion();
+      fetchProxyPort();
       setTimeout(() => fetchProxyGroups(), 50);
       setTimeout(() => fetchConnections(), 150);
     }
@@ -138,6 +140,22 @@
     } catch (err) {
       apiError = 'Failed to connect to Clash';
       console.error('Failed to fetch version:', err);
+    }
+  }
+  
+  async function fetchProxyPort() {
+    try {
+      const config = await api!.getConfig();
+      const proxyType = activeConfig?.proxyType ?? 'http';
+      if (config['mixed-port']) {
+        proxyPort = config['mixed-port'];
+      } else if (proxyType === 'socks') {
+        proxyPort = config['socks-port'] || config.port || null;
+      } else {
+        proxyPort = config.port || config['socks-port'] || null;
+      }
+    } catch (err) {
+      console.error('Failed to fetch proxy port:', err);
     }
   }
   
@@ -415,6 +433,7 @@
     <Header
       {activeConfig}
       {version}
+      {proxyPort}
       {isProxyEnabled}
       {isLoading}
       {theme}

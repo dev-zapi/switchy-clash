@@ -681,6 +681,21 @@
 								/>
 							</div>
 
+							<!-- Proxy Type -->
+							<div class="md:col-span-1">
+								<label for="config-proxy-type" class="block text-sm font-medium text-[var(--color-text-secondary)] mb-1.5">
+									代理类型
+								</label>
+								<select
+									id="config-proxy-type"
+									bind:value={editingConfig.proxyType}
+									class="w-full px-3 py-2 bg-[var(--color-bg)] border border-[var(--color-border)] rounded-lg text-[var(--color-text)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary)] focus:border-transparent transition-all"
+								>
+									<option value="http">HTTP</option>
+									<option value="socks">SOCKS</option>
+								</select>
+							</div>
+
 						<!-- Set as Default -->
 							<div class="md:col-span-2">
 								<label class="flex items-center gap-2 cursor-pointer">

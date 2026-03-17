@@ -1,6 +1,7 @@
 <script lang="ts">
   import type { ExtensionConfig, ClashVersion, ThemeMode } from '$lib/types';
   import Skeleton from '../Skeleton.svelte';
+  import ConfigDropdown from '../ConfigDropdown.svelte';
 
   let {
     activeConfig,
@@ -115,28 +116,11 @@
       {:else}
         <!-- Config Switcher Dropdown (only for multiple configs) -->
         {#if hasMultipleConfigs && !isLoading}
-          <div class="relative group">
-            <select
-              value={activeConfigId || ''}
-              onchange={(e) => onSwitchConfig(e.currentTarget.value)}
-              class="absolute inset-0 opacity-0 cursor-pointer z-20"
-              title="Switch Config"
-            >
-              {#each configs as config}
-                <option value={config.id}>
-                  {config.emoji} {config.name} {config.status === 'available' ? '(在线)' : config.status === 'unavailable' ? '(离线)' : ''}
-                </option>
-              {/each}
-            </select>
-            <button
-              class="w-9 h-9 flex items-center justify-center rounded-md shadow bg-[var(--color-bg-secondary)] text-[var(--color-primary)] hover:bg-[var(--color-bg-tertiary)] hover:text-[var(--color-primary-hover)] transition-all duration-200 border border-[var(--color-border)]"
-              title="Switch Config"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 transition-transform group-hover:rotate-180" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-              </svg>
-            </button>
-          </div>
+          <ConfigDropdown
+            {configs}
+            {activeConfigId}
+            onSwitchConfig={onSwitchConfig}
+          />
         {/if}
         
         <!-- Proxy Toggle -->

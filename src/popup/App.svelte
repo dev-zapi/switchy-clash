@@ -210,6 +210,9 @@
     if (configId === activeConfigId) return;
     
     try {
+      isLoadingGroups = true;
+      isLoadingConnections = true;
+      
       await chrome.runtime.sendMessage({ 
         type: 'SWITCH_CONFIG', 
         payload: { configId } 
@@ -219,9 +222,15 @@
       const config = configs.find(c => c.id === configId);
       if (config) {
         api = new ClashAPI(config.host, config.port, config.secret);
+        await fetchVersion();
+        await fetchProxyGroups();
+        await fetchConnections();
       }
     } catch (err) {
       console.error('Failed to switch config:', err);
+    } finally {
+      isLoadingGroups = false;
+      isLoadingConnections = false;
     }
   }
   

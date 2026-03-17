@@ -222,12 +222,34 @@
       const config = configs.find(c => c.id === configId);
       if (config) {
         api = new ClashAPI(config.host, config.port, config.secret);
-        await fetchVersion();
-        await fetchProxyGroups();
-        await fetchConnections();
+        
+        // Check if new config is available
+        const isAvailable = await api.healthCheck(3000);
+        
+        if (!isAvailable) {
+          // If config is not available and proxy is enabled, disable it
+          if (isProxyEnabled) {
+            await chrome.runtime.sendMessage({ type: 'TOGGLE_PROXY' });
+            isProxyEnabled = false;
+          }
+          apiError = '无法连接到新配置，已自动关闭代理';
+        } else {
+          apiError = '';
+          await fetchVersion();
+          await fetchProxyGroups();
+          await fetchConnections();
+        }
+        
+        // Update config status
+        const configIndex = configs.findIndex(c => c.id === configId);
+        if (configIndex !== -1) {
+          configs[configIndex].status = isAvailable ? 'available' : 'unavailable';
+          configs = [...configs];
+        }
       }
     } catch (err) {
       console.error('Failed to switch config:', err);
+      apiError = '切换配置失败';
     } finally {
       isLoadingGroups = false;
       isLoadingConnections = false;
@@ -305,6 +327,10 @@
     }
   }
   
+  function updateConfigs(updatedConfigs: ExtensionConfig[]) {
+    configs = updatedConfigs;
+  }
+
   function toggleTheme() {
     const themes: ThemeMode[] = ['light', 'dark', 'system'];
     const currentIndex = themes.indexOf(theme);
@@ -371,6 +397,7 @@
       onOpenDashboard={openDashboard}
       onToggleTheme={toggleTheme}
       onSwitchConfig={switchConfig}
+      onConfigsUpdate={updateConfigs}
     />
     
     <RuleMatch

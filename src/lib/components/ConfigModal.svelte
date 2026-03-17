@@ -1,22 +1,57 @@
 <script lang="ts">
   import { fade, scale } from 'svelte/transition';
   import type { ExtensionConfig } from '$lib/types';
+  import { ClashAPI } from '$lib/services/clash-api';
 
   let {
     configs,
     activeConfigId,
     isOpen = false,
     onClose = () => {},
-    onSwitchConfig = (_: string) => {}
+    onSwitchConfig = (_: string) => {},
+    onConfigsUpdate = (_: ExtensionConfig[]) => {}
   }: {
     configs: ExtensionConfig[];
     activeConfigId: string | null;
     isOpen: boolean;
     onClose?: () => void;
     onSwitchConfig?: (configId: string) => void;
+    onConfigsUpdate?: (updatedConfigs: ExtensionConfig[]) => void;
   } = $props();
 
+  let checkingConfigs = $state<Set<string>>(new Set());
+
   const activeConfig = $derived(configs.find(c => c.id === activeConfigId));
+
+  async function checkAllConfigsHealth() {
+    if (configs.length === 0) return;
+    
+    const updatedConfigs = [...configs];
+    
+    for (const config of updatedConfigs) {
+      checkingConfigs.add(config.id);
+      checkingConfigs = checkingConfigs;
+      
+      try {
+        const api = new ClashAPI(config.host, config.port, config.secret);
+        const isAvailable = await api.healthCheck(3000);
+        config.status = isAvailable ? 'available' : 'unavailable';
+      } catch {
+        config.status = 'unavailable';
+      }
+      
+      checkingConfigs.delete(config.id);
+      checkingConfigs = checkingConfigs;
+    }
+    
+    onConfigsUpdate(updatedConfigs);
+  }
+
+  $effect(() => {
+    if (isOpen) {
+      checkAllConfigsHealth();
+    }
+  });
 
   function handleSelect(configId: string) {
     if (configId !== activeConfigId) {
@@ -31,7 +66,8 @@
     }
   }
 
-  function getStatusIcon(status: string): string {
+  function getStatusIcon(status: string, isChecking: boolean): string {
+    if (isChecking) return '⟳';
     switch (status) {
       case 'available': return '●';
       case 'unavailable': return '○';
@@ -39,7 +75,8 @@
     }
   }
 
-  function getStatusColor(status: string): string {
+  function getStatusColor(status: string, isChecking: boolean): string {
+    if (isChecking) return 'text-[var(--color-primary)] animate-pulse';
     switch (status) {
       case 'available': return 'text-[var(--color-success)]';
       case 'unavailable': return 'text-[var(--color-danger)]';
@@ -95,8 +132,9 @@
       <div class="overflow-y-auto flex-1 p-2">
         {#each configs as config}
           <button
-            class="w-full flex items-center gap-3 px-3 py-3 rounded-md transition-all duration-150 text-left {config.id === activeConfigId ? 'bg-[var(--color-primary)]/10 border border-[var(--color-primary)]/30' : 'hover:bg-[var(--color-bg-secondary)] border border-transparent'}"
+            class="w-full flex items-center gap-3 px-3 py-3 rounded-md transition-all duration-150 text-left {config.id === activeConfigId ? 'bg-[var(--color-primary)]/10 border border-[var(--color-primary)]/30' : 'hover:bg-[var(--color-bg-secondary)] border border-transparent'} {config.status === 'unavailable' ? 'opacity-60' : ''}"
             onclick={() => handleSelect(config.id)}
+            disabled={config.status === 'unavailable'}
           >
             <!-- Emoji -->
             <span class="text-2xl shrink-0">{config.emoji}</span>
@@ -120,8 +158,8 @@
             
             <!-- Status & Check -->
             <div class="flex items-center gap-2 shrink-0">
-              <span class="text-xs {getStatusColor(config.status)}">
-                {getStatusIcon(config.status)}
+              <span class="text-xs {getStatusColor(config.status, checkingConfigs.has(config.id))}">
+                {getStatusIcon(config.status, checkingConfigs.has(config.id))}
               </span>
               
               {#if config.id === activeConfigId}

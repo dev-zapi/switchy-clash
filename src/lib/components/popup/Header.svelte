@@ -20,7 +20,8 @@
     onOpenSettings = () => {},
     onOpenDashboard = () => {},
     onToggleTheme = () => {},
-    onSwitchConfig = (_: string) => {}
+    onSwitchConfig = (_: string) => {},
+    onConfigsUpdate = (_: ExtensionConfig[]) => {}
   }: {
     activeConfig?: ExtensionConfig;
     version?: ClashVersion | null;
@@ -37,6 +38,7 @@
     onOpenDashboard?: () => void;
     onToggleTheme?: () => void;
     onSwitchConfig?: (configId: string) => void;
+    onConfigsUpdate?: (updatedConfigs: ExtensionConfig[]) => void;
   } = $props();
 
   function getVersionBadge(): string {
@@ -213,4 +215,5 @@
   isOpen={isConfigModalOpen}
   onClose={() => isConfigModalOpen = false}
   onSwitchConfig={onSwitchConfig}
+  onConfigsUpdate={onConfigsUpdate}
 />

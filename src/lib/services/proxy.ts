@@ -1,5 +1,5 @@
 // Chrome Proxy Service
-import type { ExtensionConfig } from '$lib/types';
+import type { ExtensionConfig, ProxyType } from '$lib/types';
 import { DEFAULT_BYPASS_LIST } from '$lib/types';
 
 export class ProxyService {
@@ -9,28 +9,33 @@ export class ProxyService {
   static async enable(
     proxyHost: string,
     proxyPort: number,
+    proxyType: ProxyType = 'http',
     bypassList?: string[],
   ): Promise<void> {
     const bypass = bypassList && bypassList.length > 0
       ? bypassList
       : DEFAULT_BYPASS_LIST;
 
+    const params = {
+      value: {
+        mode: 'fixed_servers',
+        rules: {
+          singleProxy: {
+            scheme: proxyType,
+            host: proxyHost,
+            port: proxyPort,
+          },
+          bypassList: bypass,
+        },
+      },
+      scope: 'regular',
+    } as const;
+
+    console.log('[ProxyService.enable]', params);
+
     return new Promise((resolve, reject) => {
       chrome.proxy.settings.set(
-        {
-          value: {
-            mode: 'fixed_servers',
-            rules: {
-              singleProxy: {
-                scheme: 'http',
-                host: proxyHost,
-                port: proxyPort,
-              },
-              bypassList: bypass,
-            },
-          },
-          scope: 'regular',
-        },
+        params,
         () => {
           if (chrome.runtime.lastError) {
             reject(new Error(chrome.runtime.lastError.message));
@@ -46,12 +51,16 @@ export class ProxyService {
    * Disable proxy, revert to system settings.
    */
   static async disable(): Promise<void> {
+    const params = {
+      value: { mode: 'system' },
+      scope: 'regular',
+    } as const;
+
+    console.log('[ProxyService.disable]', params);
+
     return new Promise((resolve, reject) => {
       chrome.proxy.settings.set(
-        {
-          value: { mode: 'system' },
-          scope: 'regular',
-        },
+        params,
         () => {
           if (chrome.runtime.lastError) {
             reject(new Error(chrome.runtime.lastError.message));

@@ -4,18 +4,26 @@
     isTesting = false,
     failed = false,
     onTest = () => {},
-    size = 'sm'
+    size = 'sm',
+    formatGroupDelay = false
   }: {
     delay?: number | null;
     isTesting?: boolean;
     failed?: boolean;
     onTest?: () => void;
     size?: 'sm' | 'md';
+    formatGroupDelay?: boolean;
   } = $props();
 
   function formatDelay(delay: number): string {
     if (delay <= 0) return '0ms';
     if (delay < 1000) return `${delay}ms`;
+    return `${(delay / 1000).toFixed(2)}s`;
+  }
+
+  function formatGroupDelayValue(delay: number): string {
+    if (delay <= 0) return '0ms';
+    if (delay < 1000) return `${Math.round(delay)}ms`;
     return `${(delay / 1000).toFixed(2)}s`;
   }
 
@@ -61,7 +69,7 @@
   {:else if failed}
     ❌
   {:else if delay !== null && delay > 0}
-    {formatDelay(delay)}
+    {formatGroupDelay ? formatGroupDelayValue(delay) : formatDelay(delay)}
   {:else}
     ⚡
   {/if}

@@ -1,5 +1,6 @@
 <script lang="ts">
   import type { ProxyGroup } from '$lib/types';
+  import LatencyButton from '../LatencyButton.svelte';
 
   let {
     group,
@@ -22,25 +23,6 @@
     onTestLatency?: () => void;
     onToggleExpanded?: () => void;
   } = $props();
-
-  function getDelayColor(delay: number): string {
-    if (delay <= 0) return 'text-[var(--color-text-muted)]';
-    if (delay < 200) return 'text-green-500';
-    if (delay < 500) return 'text-yellow-500';
-    return 'text-red-500';
-  }
-
-  function formatDelay(delay: number): string {
-    if (delay <= 0) return '0ms';
-    if (delay < 1000) return `${delay}ms`;
-    return `${(delay / 1000).toFixed(2)}s`;
-  }
-
-  function formatGroupLatency(latency: number | null): string {
-    if (latency === null || latency <= 0) return '';
-    if (latency < 1000) return `${Math.round(latency)}ms`;
-    return `${(latency / 1000).toFixed(2)}s`;
-  }
 
   function getGroupTypeLabel(type: string): string {
     switch (type) {
@@ -91,31 +73,12 @@
     {/if}
   </div>
 
-  <button
-    onclick={(e) => {
-      e.stopPropagation();
-      onTestLatency();
-    }}
-    disabled={isTesting}
-    class="text-[10px] px-2 py-1 rounded border border-[var(--color-border)] hover:bg-[var(--color-bg-tertiary)] shrink-0 min-w-[36px] text-center leading-none {
-      isTesting 
-        ? 'text-[var(--color-text-muted)]' 
-        : failedTest
-          ? 'text-red-500 hover:text-red-600 border-red-300'
-          : groupLatency !== null && groupLatency !== undefined && groupLatency > 0
-            ? getDelayColor(groupLatency!) + ' font-medium'
-            : 'text-[var(--color-text-muted)] hover:text-[var(--color-primary)]'
-    } transition-colors"
-    title={failedTest ? 'Failed - Click to retry' : 'Test group latency'}
-  >
-    {#if isTesting}
-      <span class="animate-spin inline-block">⏳</span>
-    {:else if failedTest}
-      <span class="text-red-500">!</span>
-    {:else if groupLatency !== null && groupLatency !== undefined && groupLatency > 0}
-      {formatGroupLatency(groupLatency!)}
-    {:else}
-      ⚡
-    {/if}
-  </button>
+  <LatencyButton
+    delay={groupLatency}
+    isTesting={isTesting}
+    failed={failedTest}
+    onTest={onTestLatency}
+    size="sm"
+    formatGroupDelay={true}
+  />
 </div>

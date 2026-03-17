@@ -97,25 +97,12 @@
           <div class="text-xs text-[var(--color-text-secondary)]">{group.type} · {group.all?.length || 0} nodes</div>
         </div>
         <div class="flex items-center gap-2">
-          <button
-            onclick={onTestLatency}
-            disabled={isTestingGroup}
-            class="text-sm px-3 py-1.5 rounded-md shadow bg-[var(--color-bg-secondary)] {
-              isTestingGroup
-                ? 'text-[var(--color-text-muted)]'
-                : failedTestGroup
-                  ? 'text-red-500 hover:bg-red-500/10'
-                  : 'text-[var(--color-text-secondary)] hover:bg-[var(--color-bg-tertiary)]'
-            } transition-colors"
-          >
-            {#if isTestingGroup}
-              ⏳ Testing...
-            {:else if failedTestGroup}
-              ❌ Failed - Retry
-            {:else}
-              ⚡ Test All
-            {/if}
-          </button>
+          <LatencyButton
+            isTesting={isTestingGroup}
+            failed={failedTestGroup}
+            onTest={onTestLatency}
+            size="md"
+          />
           <button
             onclick={onClose}
             class="text-sm p-1 rounded hover:bg-[var(--color-bg-secondary)] text-[var(--color-text-secondary)] transition-colors"

@@ -68,10 +68,10 @@
     </button>
   </div>
   
-  <div class="grid grid-cols-2 gap-2">
+  <div class="flex flex-col gap-2">
     {#if isLoading && proxyGroups.length === 0}
       {#each Array(4) as _}
-        <Skeleton variant="rectangular" width="100%" height="80px" />
+        <Skeleton variant="rectangular" width="100%" height="48px" />
       {/each}
     {:else}
       {#each proxyGroups as group}

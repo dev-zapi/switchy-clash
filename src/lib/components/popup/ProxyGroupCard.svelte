@@ -54,35 +54,7 @@
   }
 </script>
 
-<div class="relative bg-[var(--color-bg-secondary)] rounded-md px-2.5 py-2 shadow-md hover:shadow-xl transition-shadow cursor-pointer">
-  <button
-    onclick={(e) => {
-      e.stopPropagation();
-      onTestLatency();
-    }}
-    disabled={isTesting}
-    class="absolute top-1 right-1 text-sm px-1.5 py-1 rounded hover:bg-[var(--color-bg-tertiary)] {
-      isTesting 
-        ? 'text-[var(--color-text-muted)]' 
-        : failedTest
-          ? 'text-red-500 hover:text-red-600'
-          : 'text-[var(--color-text-muted)] hover:text-[var(--color-primary)]'
-    } transition-colors"
-    title={failedTest ? 'Failed - Click to retry' : 'Test group latency'}
-  >
-    {#if isTesting}
-      <span class="animate-spin inline-block">⏳</span>
-    {:else if failedTest}
-      ❌
-    {:else if groupLatency !== null && groupLatency !== undefined && groupLatency > 0}
-      <span class="{getDelayColor(groupLatency!)} text-xs font-medium">
-        {formatGroupLatency(groupLatency!)}
-      </span>
-    {:else}
-      ⚡
-    {/if}
-  </button>
-
+<div class="relative bg-[var(--color-bg-secondary)] rounded-md px-3 py-2.5 shadow-sm hover:shadow-md transition-shadow cursor-pointer flex items-center gap-3">
   <div
     onclick={onToggleExpanded}
     onkeydown={(e) => {
@@ -90,33 +62,56 @@
     }}
     role="button"
     tabindex="0"
-    class="w-full text-left"
+    class="flex-1 min-w-0 flex items-center gap-3"
   >
-    <div class="text-sm font-semibold text-[var(--color-text)] truncate pr-5">
-      {group.name}
-    </div>
-    
-    <div class="text-xs text-[var(--color-text-secondary)] flex items-center gap-1">
-      {getGroupTypeLabel(group.type)} ({nodeCount.available}/{nodeCount.total})
-      {#if group.type === 'Selector'}
-        <span class="text-[var(--color-primary)] opacity-60" title="Click to switch node">▾</span>
-      {/if}
+    <div class="flex-1 min-w-0">
+      <div class="text-sm font-semibold text-[var(--color-text)] truncate">
+        {group.name}
+      </div>
+      
+      <div class="text-xs text-[var(--color-text-secondary)] flex items-center gap-1">
+        {getGroupTypeLabel(group.type)} ({nodeCount.available}/{nodeCount.total})
+      </div>
     </div>
     
     {#if currentNodeName}
-      <div class="flex items-center justify-between mt-1">
-        <span class="text-xs text-[var(--color-text-secondary)] truncate flex-1 flex items-center gap-1">
+      <div class="flex items-center gap-2 shrink-0">
+        <span class="text-xs text-[var(--color-text-secondary)] truncate max-w-[120px] flex items-center gap-1">
           <span class="opacity-60">◉</span>
           {currentNodeName}
         </span>
-        {#if isTesting}
-          <span class="animate-spin text-xs ml-1 shrink-0">⏳</span>
-        {:else if currentNodeLatency !== null && currentNodeLatency > 0}
-          <span class="text-xs font-medium ml-1 shrink-0 {getDelayColor(currentNodeLatency)}">
-            {formatDelay(currentNodeLatency)}
-          </span>
+        {#if group.type === 'Selector'}
+          <span class="text-[var(--color-primary)] opacity-60" title="Click to switch node">▾</span>
         {/if}
       </div>
     {/if}
   </div>
+
+  <button
+    onclick={(e) => {
+      e.stopPropagation();
+      onTestLatency();
+    }}
+    disabled={isTesting}
+    class="text-xs px-2.5 py-1.5 rounded border border-[var(--color-border)] hover:bg-[var(--color-bg-tertiary)] shrink-0 min-w-[48px] text-center {
+      isTesting 
+        ? 'text-[var(--color-text-muted)]' 
+        : failedTest
+          ? 'text-red-500 hover:text-red-600 border-red-300'
+          : groupLatency !== null && groupLatency !== undefined && groupLatency > 0
+            ? getDelayColor(groupLatency!) + ' font-medium'
+            : 'text-[var(--color-text-muted)] hover:text-[var(--color-primary)]'
+    } transition-colors"
+    title={failedTest ? 'Failed - Click to retry' : 'Test group latency'}
+  >
+    {#if isTesting}
+      <span class="animate-spin inline-block">⏳</span>
+    {:else if failedTest}
+      <span class="text-red-500">!</span>
+    {:else if groupLatency !== null && groupLatency !== undefined && groupLatency > 0}
+      {formatGroupLatency(groupLatency!)}
+    {:else}
+      ⚡
+    {/if}
+  </button>
 </div>

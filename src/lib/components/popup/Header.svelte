@@ -1,7 +1,9 @@
 <script lang="ts">
   import type { ExtensionConfig, ClashVersion, ThemeMode } from '$lib/types';
   import Skeleton from '../Skeleton.svelte';
-  import ConfigDropdown from '../ConfigDropdown.svelte';
+  import ConfigModal from '../ConfigModal.svelte';
+
+  let isConfigModalOpen = $state(false);
 
   let {
     activeConfig,
@@ -114,13 +116,17 @@
         <Skeleton variant="circular" width="36px" height="36px" />
         <Skeleton variant="circular" width="36px" height="36px" />
       {:else}
-        <!-- Config Switcher Dropdown (only for multiple configs) -->
+        <!-- Config Switcher Button (only for multiple configs) -->
         {#if hasMultipleConfigs && !isLoading}
-          <ConfigDropdown
-            {configs}
-            {activeConfigId}
-            onSwitchConfig={onSwitchConfig}
-          />
+          <button
+            onclick={() => isConfigModalOpen = true}
+            class="w-9 h-9 flex items-center justify-center rounded-md shadow bg-[var(--color-bg-secondary)] text-[var(--color-primary)] hover:bg-[var(--color-bg-tertiary)] hover:text-[var(--color-primary-hover)] transition-all duration-200 border border-[var(--color-border)]"
+            title="Switch Config"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+            </svg>
+          </button>
         {/if}
         
         <!-- Proxy Toggle -->
@@ -199,3 +205,12 @@
     </div>
   {/if}
 </header>
+
+<!-- Config Modal -->
+<ConfigModal
+  {configs}
+  {activeConfigId}
+  isOpen={isConfigModalOpen}
+  onClose={() => isConfigModalOpen = false}
+  onSwitchConfig={onSwitchConfig}
+/>

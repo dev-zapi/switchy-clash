@@ -147,26 +147,18 @@
                 : 'hover:bg-[var(--color-bg-secondary)] text-[var(--color-text-secondary)]'}"
             >
               <span class="truncate flex-1 text-left">{nodeName}</span>
-              <div class="flex items-center gap-1 ml-2 shrink-0">
+              <div class="flex items-center gap-1 ml-2 shrink-0 h-5">
                 {#if delay !== null && delay > 0}
-                  <span class="{getDelayColor(delay)}">{formatDelay(delay)}</span>
+                  <span class="{getDelayColor(delay)} text-xs px-2 py-0.5 rounded min-w-[40px] text-center">{formatDelay(delay)}</span>
                 {:else if testingNodes.has(nodeName)}
-                  <span class="animate-spin">⏳</span>
+                  <span class="animate-spin text-xs px-2 py-0.5 min-w-[40px] text-center">⏳</span>
                 {:else}
-                  <span
-                    role="button"
-                    tabindex="0"
+                  <button
                     onclick={(e) => {
                       e.stopPropagation();
                       onTestNodeLatency(nodeName);
                     }}
-                    onkeydown={(e) => {
-                      if (e.key === 'Enter' || e.key === ' ') {
-                        e.stopPropagation();
-                        onTestNodeLatency(nodeName);
-                      }
-                    }}
-                    class="text-xs px-2 py-1 rounded {
+                    class="text-xs px-2 py-0.5 rounded min-w-[40px] text-center {
                       testingNodes.has(nodeName)
                         ? 'text-[var(--color-text-muted)]'
                         : failedTestNodes.has(nodeName)
@@ -182,10 +174,10 @@
                     {:else}
                       ⚡
                     {/if}
-                  </span>
+                  </button>
                 {/if}
                 {#if isSelected}
-                  <span class="text-[var(--color-primary)]">✓</span>
+                  <span class="text-[var(--color-primary)] w-4 text-center">✓</span>
                 {/if}
               </div>
             </div>
@@ -196,26 +188,18 @@
                 : 'text-[var(--color-text-secondary)]'}"
             >
               <span class="truncate flex-1 text-left">{nodeName}</span>
-              <div class="flex items-center gap-1 ml-2 shrink-0">
+              <div class="flex items-center gap-1 ml-2 shrink-0 h-5">
                 {#if delay !== null && delay > 0}
-                  <span class="{getDelayColor(delay)}">{formatDelay(delay)}</span>
+                  <span class="{getDelayColor(delay)} text-xs px-2 py-0.5 rounded min-w-[40px] text-center">{formatDelay(delay)}</span>
                 {:else if testingNodes.has(nodeName)}
-                  <span class="animate-spin">⏳</span>
+                  <span class="animate-spin text-xs px-2 py-0.5 min-w-[40px] text-center">⏳</span>
                 {:else}
-                  <span
-                    role="button"
-                    tabindex="0"
+                  <button
                     onclick={(e) => {
                       e.stopPropagation();
                       onTestNodeLatency(nodeName);
                     }}
-                    onkeydown={(e) => {
-                      if (e.key === 'Enter' || e.key === ' ') {
-                        e.stopPropagation();
-                        onTestNodeLatency(nodeName);
-                      }
-                    }}
-                    class="text-xs px-2 py-1 rounded {
+                    class="text-xs px-2 py-0.5 rounded min-w-[40px] text-center {
                       testingNodes.has(nodeName)
                         ? 'text-[var(--color-text-muted)]'
                         : failedTestNodes.has(nodeName)
@@ -231,10 +215,10 @@
                     {:else}
                       ⚡
                     {/if}
-                  </span>
+                  </button>
                 {/if}
                 {#if isSelected}
-                  <span class="text-[var(--color-primary)]">✓</span>
+                  <span class="text-[var(--color-primary)] w-4 text-center">✓</span>
                 {/if}
               </div>
             </div>

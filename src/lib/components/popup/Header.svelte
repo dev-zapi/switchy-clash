@@ -80,9 +80,6 @@
               {#if version?.version}
                 <span class="ml-1">{version.version}</span>
               {/if}
-              {#if isProxyEnabled}
-                <span class="text-green-500 ml-1">Proxy On</span>
-              {/if}
             </span>
           {:else}
             <!-- Multiple Configs: With dropdown -->
@@ -99,9 +96,6 @@
               {activeConfig.host}:{activeConfig.port}
               {#if version?.version}
                 <span class="ml-1">{version.version}</span>
-              {/if}
-              {#if isProxyEnabled}
-                <span class="text-green-500 ml-1">Proxy On</span>
               {/if}
             </span>
           {/if}
@@ -145,15 +139,15 @@
         <button
           onclick={onToggleProxy}
           disabled={isTogglingProxy}
-          class="w-9 h-9 flex items-center justify-center rounded-md shadow transition-colors {isProxyEnabled 
-            ? 'bg-green-500/10 text-green-500 hover:bg-green-500/20' 
-            : 'bg-[var(--color-bg-secondary)] text-[var(--color-text-secondary)] hover:bg-[var(--color-bg-tertiary)]'}"
+          class="w-14 h-9 flex items-center justify-center rounded-md shadow-md border-2 transition-all {isProxyEnabled 
+            ? 'bg-green-500 border-green-600 text-white hover:bg-green-600' 
+            : 'bg-gray-400 border-gray-500 text-white hover:bg-gray-500'}"
           title={isProxyEnabled ? 'Disable Proxy' : 'Enable Proxy'}
         >
           {#if isTogglingProxy}
             <span class="animate-spin inline-block">⏳</span>
           {:else}
-            <span>{isProxyEnabled ? '✓' : '⚪'}</span>
+            <span class="font-bold text-sm">{isProxyEnabled ? 'ON' : 'OFF'}</span>
           {/if}
         </button>
         

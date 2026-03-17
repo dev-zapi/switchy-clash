@@ -148,34 +148,33 @@
             >
               <span class="truncate flex-1 text-left">{nodeName}</span>
               <div class="flex items-center gap-1 ml-2 shrink-0 h-5">
-                {#if delay !== null && delay > 0}
-                  <span class="{getDelayColor(delay)} text-xs px-2 py-0.5 rounded min-w-[40px] text-center">{formatDelay(delay)}</span>
-                {:else if testingNodes.has(nodeName)}
-                  <span class="animate-spin text-xs px-2 py-0.5 min-w-[40px] text-center">⏳</span>
-                {:else}
-                  <button
-                    onclick={(e) => {
-                      e.stopPropagation();
-                      onTestNodeLatency(nodeName);
-                    }}
-                    class="text-xs px-2 py-0.5 rounded min-w-[40px] text-center {
-                      testingNodes.has(nodeName)
-                        ? 'text-[var(--color-text-muted)]'
-                        : failedTestNodes.has(nodeName)
-                          ? 'text-red-500 hover:bg-red-500/10'
-                          : 'hover:bg-[var(--color-bg-tertiary)] cursor-pointer'
-                    }"
-                    title={failedTestNodes.has(nodeName) ? 'Failed - Click to retry' : 'Test latency'}
-                  >
-                    {#if testingNodes.has(nodeName)}
-                      <span class="animate-spin">⏳</span>
-                    {:else if failedTestNodes.has(nodeName)}
-                      ❌
-                    {:else}
-                      ⚡
-                    {/if}
-                  </button>
-                {/if}
+                <button
+                  onclick={(e) => {
+                    e.stopPropagation();
+                    onTestNodeLatency(nodeName);
+                  }}
+                  disabled={testingNodes.has(nodeName)}
+                  class="text-xs px-2 py-0.5 rounded min-w-[50px] text-center transition-colors border border-transparent {
+                    testingNodes.has(nodeName)
+                      ? 'text-[var(--color-text-muted)]'
+                      : failedTestNodes.has(nodeName)
+                        ? 'text-red-500 hover:bg-red-500/10 border-red-200'
+                        : delay !== null && delay > 0
+                          ? getDelayColor(delay) + ' font-medium hover:bg-[var(--color-bg-tertiary)] border-[var(--color-border)]'
+                          : 'text-[var(--color-text-muted)] hover:text-[var(--color-primary)] hover:bg-[var(--color-bg-tertiary)]'
+                  }"
+                  title={failedTestNodes.has(nodeName) ? 'Failed - Click to retry' : delay !== null && delay > 0 ? 'Click to retest' : 'Test latency'}
+                >
+                  {#if testingNodes.has(nodeName)}
+                    <span class="animate-spin">⏳</span>
+                  {:else if failedTestNodes.has(nodeName)}
+                    ❌
+                  {:else if delay !== null && delay > 0}
+                    {formatDelay(delay)}
+                  {:else}
+                    ⚡
+                  {/if}
+                </button>
                 {#if isSelected}
                   <span class="text-[var(--color-primary)] w-4 text-center">✓</span>
                 {/if}
@@ -189,34 +188,33 @@
             >
               <span class="truncate flex-1 text-left">{nodeName}</span>
               <div class="flex items-center gap-1 ml-2 shrink-0 h-5">
-                {#if delay !== null && delay > 0}
-                  <span class="{getDelayColor(delay)} text-xs px-2 py-0.5 rounded min-w-[40px] text-center">{formatDelay(delay)}</span>
-                {:else if testingNodes.has(nodeName)}
-                  <span class="animate-spin text-xs px-2 py-0.5 min-w-[40px] text-center">⏳</span>
-                {:else}
-                  <button
-                    onclick={(e) => {
-                      e.stopPropagation();
-                      onTestNodeLatency(nodeName);
-                    }}
-                    class="text-xs px-2 py-0.5 rounded min-w-[40px] text-center {
-                      testingNodes.has(nodeName)
-                        ? 'text-[var(--color-text-muted)]'
-                        : failedTestNodes.has(nodeName)
-                          ? 'text-red-500 hover:bg-red-500/10'
-                          : 'hover:bg-[var(--color-bg-tertiary)] cursor-pointer'
-                    }"
-                    title={failedTestNodes.has(nodeName) ? 'Failed - Click to retry' : 'Test latency'}
-                  >
-                    {#if testingNodes.has(nodeName)}
-                      <span class="animate-spin">⏳</span>
-                    {:else if failedTestNodes.has(nodeName)}
-                      ❌
-                    {:else}
-                      ⚡
-                    {/if}
-                  </button>
-                {/if}
+                <button
+                  onclick={(e) => {
+                    e.stopPropagation();
+                    onTestNodeLatency(nodeName);
+                  }}
+                  disabled={testingNodes.has(nodeName)}
+                  class="text-xs px-2 py-0.5 rounded min-w-[50px] text-center transition-colors border border-transparent {
+                    testingNodes.has(nodeName)
+                      ? 'text-[var(--color-text-muted)]'
+                      : failedTestNodes.has(nodeName)
+                        ? 'text-red-500 hover:bg-red-500/10 border-red-200'
+                        : delay !== null && delay > 0
+                          ? getDelayColor(delay) + ' font-medium hover:bg-[var(--color-bg-tertiary)] border-[var(--color-border)]'
+                          : 'text-[var(--color-text-muted)] hover:text-[var(--color-primary)] hover:bg-[var(--color-bg-tertiary)]'
+                  }"
+                  title={failedTestNodes.has(nodeName) ? 'Failed - Click to retry' : delay !== null && delay > 0 ? 'Click to retest' : 'Test latency'}
+                >
+                  {#if testingNodes.has(nodeName)}
+                    <span class="animate-spin">⏳</span>
+                  {:else if failedTestNodes.has(nodeName)}
+                    ❌
+                  {:else if delay !== null && delay > 0}
+                    {formatDelay(delay)}
+                  {:else}
+                    ⚡
+                  {/if}
+                </button>
                 {#if isSelected}
                   <span class="text-[var(--color-primary)] w-4 text-center">✓</span>
                 {/if}

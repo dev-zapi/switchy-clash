@@ -54,7 +54,7 @@
   }
 </script>
 
-<div class="relative bg-[var(--color-bg-secondary)] rounded-md px-3 py-2.5 shadow-sm hover:shadow-md transition-shadow cursor-pointer flex items-center gap-3">
+<div class="relative bg-[var(--color-bg-secondary)] rounded-md px-3 py-1.5 shadow-sm hover:shadow-md transition-shadow cursor-pointer flex items-center gap-3">
   <div
     onclick={onToggleExpanded}
     onkeydown={(e) => {
@@ -62,26 +62,30 @@
     }}
     role="button"
     tabindex="0"
-    class="flex-1 min-w-0 flex items-center gap-3"
+    class="flex-1 min-w-0 flex items-center gap-2"
   >
-    <div class="flex-1 min-w-0">
-      <div class="text-sm font-semibold text-[var(--color-text)] truncate">
+    <div class="flex-1 min-w-0 flex items-center gap-1.5">
+      <div class="text-xs font-semibold text-[var(--color-text)] truncate">
         {group.name}
       </div>
       
-      <div class="text-xs text-[var(--color-text-secondary)] flex items-center gap-1">
-        {getGroupTypeLabel(group.type)} ({nodeCount.available}/{nodeCount.total})
-      </div>
+      <span class="text-[10px] px-1 py-0.5 rounded bg-[var(--color-bg-tertiary)] text-[var(--color-text-secondary)]">
+        {getGroupTypeLabel(group.type)}
+      </span>
+      
+      <span class="text-[10px] text-[var(--color-text-muted)]">
+        ({nodeCount.available}/{nodeCount.total})
+      </span>
     </div>
     
     {#if currentNodeName}
-      <div class="flex items-center gap-2 shrink-0">
-        <span class="text-xs text-[var(--color-text-secondary)] truncate max-w-[120px] flex items-center gap-1">
+      <div class="flex items-center gap-1.5 shrink-0">
+        <span class="text-[11px] text-[var(--color-text-secondary)] truncate max-w-[100px] flex items-center gap-1">
           <span class="opacity-60">◉</span>
           {currentNodeName}
         </span>
         {#if group.type === 'Selector'}
-          <span class="text-[var(--color-primary)] opacity-60" title="Click to switch node">▾</span>
+          <span class="text-[10px] text-[var(--color-primary)] opacity-60" title="Click to switch node">▾</span>
         {/if}
       </div>
     {/if}
@@ -93,7 +97,7 @@
       onTestLatency();
     }}
     disabled={isTesting}
-    class="text-xs px-2.5 py-1.5 rounded border border-[var(--color-border)] hover:bg-[var(--color-bg-tertiary)] shrink-0 min-w-[48px] text-center {
+    class="text-[10px] px-2 py-1 rounded border border-[var(--color-border)] hover:bg-[var(--color-bg-tertiary)] shrink-0 min-w-[36px] text-center leading-none {
       isTesting 
         ? 'text-[var(--color-text-muted)]' 
         : failedTest

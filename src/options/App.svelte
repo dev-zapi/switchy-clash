@@ -30,7 +30,19 @@
 	// Initialize on mount
 	onMount(() => {
 		loadData();
+		setupStorageListener();
 	});
+
+	function setupStorageListener(): void {
+		storage.onChanged((changes) => {
+			if (changes.configs) {
+				const newConfigs = changes.configs.newValue;
+				if (Array.isArray(newConfigs)) {
+					configs = newConfigs;
+				}
+			}
+		});
+	}
 
 	// Apply theme when it changes
 	$effect(() => {

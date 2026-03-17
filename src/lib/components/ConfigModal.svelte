@@ -134,7 +134,6 @@
           <button
             class="w-full flex items-center gap-3 px-3 py-3 rounded-md transition-all duration-150 text-left {config.id === activeConfigId ? 'bg-[var(--color-primary)]/10 border border-[var(--color-primary)]/30' : 'hover:bg-[var(--color-bg-secondary)] border border-transparent'} {config.status === 'unavailable' ? 'opacity-60' : ''}"
             onclick={() => handleSelect(config.id)}
-            disabled={config.status === 'unavailable'}
           >
             <!-- Emoji -->
             <span class="text-2xl shrink-0">{config.emoji}</span>

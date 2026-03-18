@@ -122,6 +122,15 @@ class StorageService {
     return this.set('customFontFamily', font);
   }
 
+  // Bypass List
+  async getBypassList(): Promise<string[]> {
+    return this.get('bypassList');
+  }
+
+  async setBypassList(bypassList: string[]): Promise<void> {
+    return this.set('bypassList', bypassList);
+  }
+
   // Listen for changes
   onChanged(
     callback: (changes: Record<string, chrome.storage.StorageChange>) => void,

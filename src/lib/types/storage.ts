@@ -9,7 +9,6 @@ export interface ExtensionConfig {
   host: string;
   port: number;
   secret?: string;
-  bypassList?: string[];
   isDefault: boolean;
   lastUsed: number;
   status: 'unknown' | 'available' | 'unavailable' | 'useless';
@@ -24,6 +23,7 @@ export interface ExtensionStorage {
   configs: ExtensionConfig[];
   activeConfigId: string | null;
   proxyEnabled: boolean;
+  bypassList: string[];
   themeMode: ThemeMode;
   fontFamily: FontFamily;
   customFontFamily: string;
@@ -43,7 +43,6 @@ export const DEFAULT_CONFIG: ExtensionConfig = {
   host: '127.0.0.1',
   port: 9090,
   secret: '',
-  bypassList: [...DEFAULT_BYPASS_LIST],
   isDefault: true,
   lastUsed: 0,
   status: 'unknown',
@@ -54,6 +53,7 @@ export const DEFAULT_STORAGE: ExtensionStorage = {
   configs: [],
   activeConfigId: null,
   proxyEnabled: false,
+  bypassList: [...DEFAULT_BYPASS_LIST],
   themeMode: 'system',
   fontFamily: 'misans',
   customFontFamily: '',

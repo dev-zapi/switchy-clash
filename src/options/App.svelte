@@ -57,21 +57,18 @@
 	async function loadData(): Promise<void> {
 		try {
 			isLoading = true;
-			const [storedConfigs, storedTheme, storedFont, storedCustomFont] = await Promise.all([
+			const [storedConfigs, storedTheme, storedFont, storedCustomFont, storedBypassList] = await Promise.all([
 				storage.getConfigs(),
 				storage.getThemeMode(),
 				storage.getFontFamily(),
-				storage.getCustomFontFamily()
+				storage.getCustomFontFamily(),
+				storage.getBypassList()
 			]);
 			configs = Array.isArray(storedConfigs) ? storedConfigs : [];
 			themeMode = storedTheme;
 			fontFamily = storedFont;
 			customFontFamily = storedCustomFont;
-			
-			// Load global bypass list from first config or use default
-			if (configs.length > 0 && configs[0].bypassList) {
-				globalBypassList = [...configs[0].bypassList];
-			}
+			globalBypassList = storedBypassList;
 		} catch (error) {
 			console.error('Failed to load data:', error);
 			showNotification('Failed to load settings', 'error');
@@ -92,8 +89,7 @@
 			...DEFAULT_CONFIG,
 			id: generateId(),
 			isDefault: configs.length === 0, // First config is default
-			lastUsed: Date.now(),
-			bypassList: [...globalBypassList]
+			lastUsed: Date.now()
 		};
 		isEditing = true;
 		formErrors = {};
@@ -394,14 +390,8 @@
 		const lines = textarea.value.split('\n').map(l => l.trim()).filter(l => l);
 		globalBypassList = lines;
 
-		// Update all configs with new bypass list
-		const updatedConfigs = configs.map(c => ({
-			...c,
-			bypassList: [...globalBypassList]
-		}));
-		
-		configs = updatedConfigs;
-		await storage.setConfigs(updatedConfigs);
+		// Save bypass list directly to storage
+		await storage.setBypassList(globalBypassList);
 	}
 
 	function getThemeIcon(mode: ThemeMode): string {

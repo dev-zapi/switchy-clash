@@ -90,13 +90,13 @@ async function enableProxy(): Promise<{ success: boolean; error?: string }> {
       return { success: false, error: 'No available proxy port in Clash configuration' };
     }
     
-    // Get global bypass list and add the Clash API host to it
-    const bypassList = await storage.getBypassList();
-    const finalBypassList = [...bypassList];
-    if (!finalBypassList.includes(config.host)) {
-      finalBypassList.push(config.host);
-    }
-    await ProxyService.enable(config.host, proxyPort, config.proxyType, finalBypassList);
+    // Add all config hosts to bypass list so API traffic
+    // is not routed through the proxy
+    const configs = await storage.getConfigs();
+    const allHosts = configs.map(c => c.host);
+    const baseBypassList = await storage.getBypassList();
+    const bypassList = [...new Set([...baseBypassList, ...allHosts])];
+    await ProxyService.enable(config.host, proxyPort, config.proxyType, bypassList);
     await storage.setProxyEnabled(true);
     await updateIcon(true, false, config.emoji);
     // Update config status

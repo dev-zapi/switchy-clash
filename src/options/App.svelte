@@ -92,7 +92,8 @@
 			...DEFAULT_CONFIG,
 			id: generateId(),
 			isDefault: configs.length === 0, // First config is default
-			lastUsed: Date.now()
+			lastUsed: Date.now(),
+			bypassList: [...globalBypassList]
 		};
 		isEditing = true;
 		formErrors = {};

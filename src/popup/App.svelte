@@ -89,6 +89,18 @@
     }
   });
   
+  $effect(() => {
+    const listener = (changes: Record<string, { newValue?: unknown }>) => {
+      if (changes.proxyEnabled?.newValue !== undefined) {
+        isProxyEnabled = changes.proxyEnabled.newValue as boolean;
+      }
+    };
+    chrome.storage.onChanged.addListener(listener);
+    return () => {
+      chrome.storage.onChanged.removeListener(listener);
+    };
+  });
+  
   async function initializePopup() {
     try {
       isLoading = true;
@@ -215,8 +227,11 @@
   async function toggleProxy() {
     try {
       isTogglingProxy = true;
-      await chrome.runtime.sendMessage({ type: 'TOGGLE_PROXY' });
-      isProxyEnabled = !isProxyEnabled;
+      const response = await chrome.runtime.sendMessage({ type: 'TOGGLE_PROXY' });
+      if (response.success) {
+        const state = await storage.getProxyEnabled();
+        isProxyEnabled = state;
+      }
     } catch (err) {
       console.error('Failed to toggle proxy:', err);
     } finally {
@@ -227,28 +242,22 @@
   async function switchConfig(configId: string) {
     if (configId === activeConfigId) return;
     
-    // 1. 记录当前代理状态
-    const wasProxyEnabled = isProxyEnabled;
-    
     try {
       isLoadingGroups = true;
       isLoadingConnections = true;
       apiError = '';
       
-      // 2. 关闭当前代理（如果开着）
+      const wasProxyEnabled = isProxyEnabled;
+      
       if (isProxyEnabled) {
-        await chrome.runtime.sendMessage({ type: 'TOGGLE_PROXY' });
-        isProxyEnabled = false;
+        await chrome.runtime.sendMessage({ type: 'DISABLE_PROXY' });
       }
       
-      // 3. 清空显示内容
       proxyGroups = [];
       allProxies = {};
       connections = [];
       version = null;
-      // matchedConnection 是 derived，清空 connections 后自动清空
       
-      // 4. 切换到新配置
       await chrome.runtime.sendMessage({ 
         type: 'SWITCH_CONFIG', 
         payload: { configId } 
@@ -260,11 +269,9 @@
         throw new Error('Config not found');
       }
       
-      // 5. 测试新配置连通性
       api = new ClashAPI(config.host, config.port, config.secret);
       const isAvailable = await api.healthCheck(3000);
       
-      // Update config status
       const configIndex = configs.findIndex(c => c.id === configId);
       if (configIndex !== -1) {
         configs[configIndex].status = isAvailable ? 'available' : 'unavailable';
@@ -272,33 +279,23 @@
       }
       
       if (!isAvailable) {
-        // 6. 如果连不通：报错，保持关闭，不获取数据
         apiError = '无法连接到新配置';
         isLoadingGroups = false;
         isLoadingConnections = false;
         return;
       }
       
-      // 7. 能连通：获取代理配置和信息
       await fetchVersion();
       await fetchProxyGroups();
       await fetchConnections();
       
-      // 8. 如果之前代理是开启的，自动开启代理
       if (wasProxyEnabled) {
-        await chrome.runtime.sendMessage({ type: 'TOGGLE_PROXY' });
-        isProxyEnabled = true;
+        await chrome.runtime.sendMessage({ type: 'ENABLE_PROXY' });
       }
-      // 如果之前是关闭的，保持关闭（不需要操作）
       
     } catch (err) {
       console.error('Failed to switch config:', err);
       apiError = '切换配置失败';
-      // 确保代理保持关闭
-      if (isProxyEnabled) {
-        await chrome.runtime.sendMessage({ type: 'TOGGLE_PROXY' });
-        isProxyEnabled = false;
-      }
     } finally {
       isLoadingGroups = false;
       isLoadingConnections = false;

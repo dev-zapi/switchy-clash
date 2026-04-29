@@ -447,7 +447,7 @@
 				</h1>
 				<button
 					onclick={handleThemeToggle}
-					class="inline-flex items-center gap-2 px-3 py-2 rounded-lg bg-[var(--color-bg-secondary)] hover:bg-[var(--color-bg-tertiary)] transition-colors border border-[var(--color-border)]"
+					class="inline-flex items-center gap-2 px-3 py-2 rounded bg-[var(--color-bg-secondary)] hover:bg-[var(--color-bg-tertiary)] transition-colors border border-[var(--color-border)]"
 					title="Toggle theme (current: {getThemeLabel(themeMode)})"
 				>
 					<span class="text-lg">{getThemeIcon(themeMode)}</span>
@@ -466,7 +466,7 @@
 					<h2 class="text-lg font-medium text-[var(--color-text)]">Configurations</h2>
 					<button
 						onclick={handleAddNew}
-						class="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-medium text-white bg-[var(--color-primary)] hover:bg-[var(--color-primary-hover)] rounded-lg transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[var(--color-primary)] focus-visible:ring-offset-[var(--color-bg)]"
+						class="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-medium text-white bg-[var(--color-primary)] hover:bg-[var(--color-primary-hover)] rounded transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[var(--color-primary)] focus-visible:ring-offset-[var(--color-bg)]"
 					>
 						<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 							<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
@@ -476,41 +476,39 @@
 				</div>
 
 				{#if !hasConfigs}
-					<div class="text-center py-12 bg-[var(--color-bg-secondary)] rounded-xl border border-[var(--color-border)] border-dashed">
+					<div class="text-center py-12 bg-[var(--color-bg-secondary)] rounded-md border border-[var(--color-border)] border-dashed">
 						<div class="text-4xl mb-3">🔌</div>
 						<p class="text-[var(--color-text-secondary)] mb-2">No configurations yet</p>
 						<p class="text-sm text-[var(--color-text-muted)]">Add your first Clash API configuration to get started</p>
 					</div>
 				{:else}
-					<div class="space-y-3">
+					<div class="space-y-1.5">
 						{#each configs as config (config.id)}
-							<div class="bg-[var(--color-bg-secondary)] rounded-xl border border-[var(--color-border)] p-4 transition-all hover:border-[var(--color-primary)]/50">
-								<div class="flex items-center justify-between">
-									<div class="flex items-center gap-3">
-										<span class="text-2xl" title="Configuration icon">{config.emoji}</span>
-										<div class="flex flex-col gap-0.5">
-											<div class="flex items-center gap-2">
-												<h3 class="font-medium text-[var(--color-text)]">
-													{config.name}
-												</h3>
-												{#if config.isDefault}
-													<span class="px-2 py-0.5 text-xs font-medium bg-[var(--color-primary)]/10 text-[var(--color-primary)] rounded-full border border-[var(--color-primary)]/20">
-														Default
-													</span>
-												{/if}
-												<span class="text-xs text-[var(--color-text-muted)] capitalize">
-													{config.status === 'available' ? '🟢' : config.status === 'unavailable' ? '🔴' : '⚪'}
+							<div class="bg-[var(--color-bg-secondary)] rounded border border-[var(--color-border)] px-3 py-1.5 transition-all hover:border-[var(--color-primary)]/50">
+								<div class="flex items-center justify-between gap-2">
+									<div class="flex items-center gap-2 min-w-0 flex-1">
+										<span class="text-base leading-none shrink-0" title="Configuration icon">{config.emoji}</span>
+										<div class="flex items-center gap-2 min-w-0 flex-1">
+											<h3 class="text-sm font-medium text-[var(--color-text)] truncate">
+												{config.name}
+											</h3>
+											{#if config.isDefault}
+												<span class="px-1.5 py-0.5 text-[10px] font-medium bg-[var(--color-primary)]/10 text-[var(--color-primary)] rounded leading-none border border-[var(--color-primary)]/20 shrink-0">
+													Default
 												</span>
-											</div>
-											<p class="text-xs text-[var(--color-text-secondary)]">
+											{/if}
+											<span class="text-xs leading-none shrink-0">
+												{config.status === 'available' ? '🟢' : config.status === 'unavailable' ? '🔴' : '⚪'}
+											</span>
+											<p class="text-xs text-[var(--color-text-secondary)] truncate">
 												{config.host}:{config.port}
 											</p>
 										</div>
 									</div>
-									<div class="flex items-center gap-2">
+									<div class="flex items-center gap-1 shrink-0">
 										<button
 											onclick={() => handleEdit(config)}
-											class="p-2 text-[var(--color-text-secondary)] hover:text-[var(--color-primary)] hover:bg-[var(--color-primary)]/10 rounded-lg transition-colors"
+											class="p-1.5 text-[var(--color-text-secondary)] hover:text-[var(--color-primary)] hover:bg-[var(--color-primary)]/10 rounded-sm transition-colors"
 											title="Edit configuration"
 										>
 											<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -519,7 +517,7 @@
 										</button>
 										<button
 											onclick={() => handleDelete(config.id)}
-											class="p-2 text-[var(--color-text-secondary)] hover:text-[var(--color-danger)] hover:bg-[var(--color-danger)]/10 rounded-lg transition-colors"
+											class="p-1.5 text-[var(--color-text-secondary)] hover:text-[var(--color-danger)] hover:bg-[var(--color-danger)]/10 rounded-sm transition-colors"
 											title="Delete configuration"
 										>
 											<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -537,7 +535,7 @@
 						<button
 							onclick={handleCheckAll}
 							disabled={isCheckingAll}
-							class="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-medium text-[var(--color-text)] bg-[var(--color-bg-tertiary)] hover:bg-[var(--color-border)] rounded-lg border border-[var(--color-border)] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+							class="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-medium text-[var(--color-text)] bg-[var(--color-bg-tertiary)] hover:bg-[var(--color-border)] rounded border border-[var(--color-border)] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
 						>
 							{#if isCheckingAll}
 								<svg class="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
@@ -554,7 +552,7 @@
 
 						<button
 							onclick={handleExport}
-							class="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-medium text-[var(--color-text)] bg-[var(--color-bg-tertiary)] hover:bg-[var(--color-border)] rounded-lg border border-[var(--color-border)] transition-colors"
+							class="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-medium text-[var(--color-text)] bg-[var(--color-bg-tertiary)] hover:bg-[var(--color-border)] rounded border border-[var(--color-border)] transition-colors"
 						>
 							<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 								<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
@@ -562,7 +560,7 @@
 							Export
 						</button>
 
-						<label class="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-medium text-[var(--color-text)] bg-[var(--color-bg-tertiary)] hover:bg-[var(--color-border)] rounded-lg border border-[var(--color-border)] transition-colors cursor-pointer">
+						<label class="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-medium text-[var(--color-text)] bg-[var(--color-bg-tertiary)] hover:bg-[var(--color-border)] rounded border border-[var(--color-border)] transition-colors cursor-pointer">
 							<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 								<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
 							</svg>
@@ -585,7 +583,7 @@
 						{configs.find(c => c.id === editingConfig!.id) ? 'Edit Configuration' : 'Add Configuration'}
 					</h2>
 					
-					<div class="bg-[var(--color-bg-secondary)] rounded-xl border border-[var(--color-border)] p-6">
+					<div class="bg-[var(--color-bg-secondary)] rounded-md border border-[var(--color-border)] p-6">
 						<div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
 							<!-- Name -->
 							<div class="md:col-span-1">
@@ -597,7 +595,7 @@
 									type="text"
 									bind:value={editingConfig.name}
 									placeholder="e.g., Home Server"
-									class="w-full px-3 py-2 bg-[var(--color-bg)] border border-[var(--color-border)] rounded-lg text-[var(--color-text)] placeholder:text-[var(--color-text-muted)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary)] focus:border-transparent transition-all"
+									class="w-full px-3 py-2 bg-[var(--color-bg)] border border-[var(--color-border)] rounded text-[var(--color-text)] placeholder:text-[var(--color-text-muted)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary)] focus:border-transparent transition-all"
 								/>
 								{#if formErrors.name}
 									<p class="mt-1 text-xs text-[var(--color-danger)]">{formErrors.name}</p>
@@ -614,7 +612,7 @@
 										<button
 											type="button"
 											onclick={() => { if (editingConfig) editingConfig.emoji = emoji; }}
-											class="w-10 h-10 text-xl rounded-lg border transition-all {editingConfig.emoji === emoji ? 'border-[var(--color-primary)] bg-[var(--color-primary)]/10' : 'border-[var(--color-border)] hover:border-[var(--color-primary)]/50'}"
+											class="w-10 h-10 text-xl rounded border transition-all {editingConfig.emoji === emoji ? 'border-[var(--color-primary)] bg-[var(--color-primary)]/10' : 'border-[var(--color-border)] hover:border-[var(--color-primary)]/50'}"
 										>
 											{emoji}
 										</button>
@@ -632,7 +630,7 @@
 									type="text"
 									bind:value={editingConfig.host}
 									placeholder="127.0.0.1"
-									class="w-full px-3 py-2 bg-[var(--color-bg)] border border-[var(--color-border)] rounded-lg text-[var(--color-text)] placeholder:text-[var(--color-text-muted)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary)] focus:border-transparent transition-all"
+									class="w-full px-3 py-2 bg-[var(--color-bg)] border border-[var(--color-border)] rounded text-[var(--color-text)] placeholder:text-[var(--color-text-muted)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary)] focus:border-transparent transition-all"
 								/>
 								{#if formErrors.host}
 									<p class="mt-1 text-xs text-[var(--color-danger)]">{formErrors.host}</p>
@@ -651,7 +649,7 @@
 									min="1"
 									max="65535"
 									placeholder="9090"
-									class="w-full px-3 py-2 bg-[var(--color-bg)] border border-[var(--color-border)] rounded-lg text-[var(--color-text)] placeholder:text-[var(--color-text-muted)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary)] focus:border-transparent transition-all"
+									class="w-full px-3 py-2 bg-[var(--color-bg)] border border-[var(--color-border)] rounded text-[var(--color-text)] placeholder:text-[var(--color-text-muted)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary)] focus:border-transparent transition-all"
 								/>
 								{#if formErrors.port}
 									<p class="mt-1 text-xs text-[var(--color-danger)]">{formErrors.port}</p>
@@ -668,7 +666,7 @@
 									type="password"
 									bind:value={editingConfig.secret}
 									placeholder="API secret token"
-									class="w-full px-3 py-2 bg-[var(--color-bg)] border border-[var(--color-border)] rounded-lg text-[var(--color-text)] placeholder:text-[var(--color-text-muted)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary)] focus:border-transparent transition-all"
+									class="w-full px-3 py-2 bg-[var(--color-bg)] border border-[var(--color-border)] rounded text-[var(--color-text)] placeholder:text-[var(--color-text-muted)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary)] focus:border-transparent transition-all"
 								/>
 							</div>
 
@@ -680,7 +678,7 @@
 								<select
 									id="config-proxy-type"
 									bind:value={editingConfig.proxyType}
-									class="w-full px-3 py-2 bg-[var(--color-bg)] border border-[var(--color-border)] rounded-lg text-[var(--color-text)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary)] focus:border-transparent transition-all"
+									class="w-full px-3 py-2 bg-[var(--color-bg)] border border-[var(--color-border)] rounded text-[var(--color-text)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary)] focus:border-transparent transition-all"
 								>
 									<option value="http">HTTP</option>
 									<option value="socks">SOCKS</option>
@@ -702,7 +700,7 @@
 
 						<!-- Test Status -->
 						{#if testStatus}
-							<div class="mb-4 p-3 rounded-lg text-sm {testStatus.type === 'success' ? 'bg-[var(--color-success)]/10 text-[var(--color-success)] border border-[var(--color-success)]/20' : testStatus.type === 'error' ? 'bg-[var(--color-danger)]/10 text-[var(--color-danger)] border border-[var(--color-danger)]/20' : 'bg-[var(--color-primary)]/10 text-[var(--color-primary)] border border-[var(--color-primary)]/20'}">
+							<div class="mb-4 p-3 rounded text-sm {testStatus.type === 'success' ? 'bg-[var(--color-success)]/10 text-[var(--color-success)] border border-[var(--color-success)]/20' : testStatus.type === 'error' ? 'bg-[var(--color-danger)]/10 text-[var(--color-danger)] border border-[var(--color-danger)]/20' : 'bg-[var(--color-primary)]/10 text-[var(--color-primary)] border border-[var(--color-primary)]/20'}">
 								{testStatus.message}
 							</div>
 						{/if}
@@ -711,7 +709,7 @@
 						<div class="flex flex-wrap items-center gap-3">
 							<button
 								onclick={handleTestConnection}
-								class="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-medium text-[var(--color-text)] bg-[var(--color-bg-tertiary)] hover:bg-[var(--color-border)] rounded-lg border border-[var(--color-border)] transition-colors"
+								class="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-medium text-[var(--color-text)] bg-[var(--color-bg-tertiary)] hover:bg-[var(--color-border)] rounded border border-[var(--color-border)] transition-colors"
 							>
 								<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 									<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
@@ -721,7 +719,7 @@
 
 							<button
 								onclick={handleSave}
-								class="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-medium text-white bg-[var(--color-primary)] hover:bg-[var(--color-primary-hover)] rounded-lg transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[var(--color-primary)] focus-visible:ring-offset-[var(--color-bg)]"
+								class="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-medium text-white bg-[var(--color-primary)] hover:bg-[var(--color-primary-hover)] rounded transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[var(--color-primary)] focus-visible:ring-offset-[var(--color-bg)]"
 							>
 								<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 									<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
@@ -731,7 +729,7 @@
 
 							<button
 								onclick={handleCancel}
-								class="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-medium text-[var(--color-text-secondary)] hover:text-[var(--color-text)] rounded-lg transition-colors"
+								class="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-medium text-[var(--color-text-secondary)] hover:text-[var(--color-text)] rounded transition-colors"
 							>
 								Cancel
 							</button>
@@ -743,7 +741,7 @@
 			<!-- Global Bypass List Section -->
 			<section class="mb-8">
 				<h2 class="text-lg font-medium text-[var(--color-text)] mb-2">Proxy Bypass List</h2>
-				<div class="bg-[var(--color-bg-secondary)] rounded-xl border border-[var(--color-border)] p-3">
+				<div class="bg-[var(--color-bg-secondary)] rounded-md border border-[var(--color-border)] p-3">
 					<label for="global-bypass" class="block text-sm font-medium text-[var(--color-text-secondary)] mb-1">
 						One per line:
 					</label>
@@ -752,7 +750,7 @@
 						value={globalBypassList.join('\n')}
 						oninput={handleGlobalBypassChange}
 						rows="10"
-						class="w-full px-3 py-2 bg-[var(--color-bg)] border border-[var(--color-border)] rounded-lg text-[var(--color-text)] placeholder:text-[var(--color-text-muted)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary)] focus:border-transparent transition-all resize-y font-mono text-sm"
+						class="w-full px-3 py-2 bg-[var(--color-bg)] border border-[var(--color-border)] rounded text-[var(--color-text)] placeholder:text-[var(--color-text-muted)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary)] focus:border-transparent transition-all resize-y font-mono text-sm"
 					></textarea>
 					<p class="mt-1 text-xs text-[var(--color-text-muted)]">
 						These patterns will be applied to all configurations. Changes are saved automatically.
@@ -763,7 +761,7 @@
 			<!-- Font Settings Section -->
 			<section class="mb-8">
 				<h2 class="text-lg font-medium text-[var(--color-text)] mb-2">Font Settings</h2>
-				<div class="bg-[var(--color-bg-secondary)] rounded-xl border border-[var(--color-border)] p-4">
+				<div class="bg-[var(--color-bg-secondary)] rounded-md border border-[var(--color-border)] p-4">
 					<div class="flex flex-col gap-4">
 						<div class="text-sm text-[var(--color-text-secondary)]">
 							<p>Font settings apply to:</p>
@@ -784,7 +782,7 @@
 								value={fontFamily}
 								onchange={handleFontChange}
 								data-font={fontFamily}
-								class="w-full px-3 py-2 bg-[var(--color-bg)] border border-[var(--color-border)] rounded-lg text-[var(--color-text)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary)] transition-all"
+								class="w-full px-3 py-2 bg-[var(--color-bg)] border border-[var(--color-border)] rounded text-[var(--color-text)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary)] transition-all"
 							>
 								{#each FONT_OPTIONS as option}
 									<option value={option.value}>{option.label}</option>
@@ -802,7 +800,7 @@
 									value={customFontFamily}
 									oninput={handleCustomFontChange}
 									placeholder="e.g., 'Inter', 'Roboto', sans-serif"
-									class="w-full px-3 py-2 bg-[var(--color-bg)] border border-[var(--color-border)] rounded-lg text-[var(--color-text)] placeholder:text-[var(--color-text-muted)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary)] transition-all font-mono text-sm"
+									class="w-full px-3 py-2 bg-[var(--color-bg)] border border-[var(--color-border)] rounded text-[var(--color-text)] placeholder:text-[var(--color-text-muted)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary)] transition-all font-mono text-sm"
 								/>
 								<p class="mt-1 text-xs text-[var(--color-text-muted)]">
 									Enter font names in CSS format, comma-separated. Example: <code class="px-1 py-0.5 bg-[var(--color-bg-tertiary)] rounded">'Inter', 'Helvetica Neue', sans-serif</code>
@@ -812,17 +810,17 @@
 						<div>
 							<p class="text-sm text-[var(--color-text-secondary)] mb-2">Preview: <span class="font-medium text-[var(--color-text)]">{fontFamily === 'custom' ? (customFontFamily || 'Not set') : getFontLabel(fontFamily)}</span></p>
 							<div class="grid grid-cols-1 md:grid-cols-2 gap-3" style="font-family: {fontFamily === 'custom' && customFontFamily ? customFontFamily : 'var(--font-family, var(--font-sans))'};">
-								<div class="bg-[var(--color-bg)] rounded-lg p-3 border border-[var(--color-border)]">
+								<div class="bg-[var(--color-bg)] rounded p-3 border border-[var(--color-border)]">
 									<p class="text-xs text-[var(--color-text-muted)] mb-1">Latin Text</p>
 									<p class="text-sm">The quick brown fox jumps over the lazy dog.</p>
 									<p class="text-xs text-[var(--color-text-muted)] mt-2">1234567890 !@#$%^&*()</p>
 								</div>
-								<div class="bg-[var(--color-bg)] rounded-lg p-3 border border-[var(--color-border)]">
+								<div class="bg-[var(--color-bg)] rounded p-3 border border-[var(--color-border)]">
 									<p class="text-xs text-[var(--color-text-muted)] mb-1">Code Sample</p>
 									<p class="text-sm font-mono">const hello = "world";</p>
 									<p class="text-xs text-[var(--color-text-muted)] mt-2">function test() &#123; return true; &#125;</p>
 								</div>
-								<div class="bg-[var(--color-bg)] rounded-lg p-3 border border-[var(--color-border)] md:col-span-2">
+								<div class="bg-[var(--color-bg)] rounded p-3 border border-[var(--color-border)] md:col-span-2">
 									<p class="text-xs text-[var(--color-text-muted)] mb-1">Chinese Text</p>
 									<p class="text-sm">快速棕色狐狸跳过懒狗</p>
 									<p class="text-xs text-[var(--color-text-muted)] mt-2">天地玄黄，宇宙洪荒</p>

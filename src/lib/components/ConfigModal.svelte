@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { untrack } from 'svelte';
   import { fade, scale } from 'svelte/transition';
   import type { ExtensionConfig } from '$lib/types';
   import { ClashAPI } from '$lib/services/clash-api';
@@ -20,36 +21,46 @@
   } = $props();
 
   let checkingConfigs = $state<Set<string>>(new Set());
+  let healthCheckRun = 0;
 
   const activeConfig = $derived(configs.find(c => c.id === activeConfigId));
 
-  async function checkAllConfigsHealth() {
-    if (configs.length === 0) return;
+  async function checkAllConfigsHealth(configsToCheck: ExtensionConfig[]) {
+    if (configsToCheck.length === 0) return;
+    const runId = ++healthCheckRun;
     
-    const updatedConfigs = [...configs];
+    checkingConfigs = new Set(configsToCheck.map(config => config.id));
     
-    for (const config of updatedConfigs) {
-      checkingConfigs.add(config.id);
-      checkingConfigs = checkingConfigs;
-      
+    const updatedConfigs = await Promise.all(configsToCheck.map(async (config) => {
       try {
         const api = new ClashAPI(config.host, config.port, config.secret);
         const isAvailable = await api.healthCheck(3000);
-        config.status = isAvailable ? 'available' : 'unavailable';
+        return {
+          ...config,
+          status: isAvailable ? 'available' : 'unavailable',
+        } satisfies ExtensionConfig;
       } catch {
-        config.status = 'unavailable';
+        return {
+          ...config,
+          status: 'unavailable',
+        } satisfies ExtensionConfig;
       }
-      
-      checkingConfigs.delete(config.id);
-      checkingConfigs = checkingConfigs;
-    }
-    
+    }));
+
+    if (runId !== healthCheckRun || !isOpen) return;
+
+    checkingConfigs = new Set();
+
     onConfigsUpdate(updatedConfigs);
   }
 
   $effect(() => {
     if (isOpen) {
-      checkAllConfigsHealth();
+      const configsToCheck = untrack(() => configs);
+      void checkAllConfigsHealth(configsToCheck);
+    } else {
+      healthCheckRun += 1;
+      checkingConfigs = new Set();
     }
   });
 
@@ -91,6 +102,10 @@
     class="fixed inset-0 bg-black/50 z-40"
     transition:fade={{ duration: 150 }}
     onclick={onClose}
+    onkeydown={handleKeydown}
+    role="button"
+    tabindex="0"
+    aria-label="Close modal backdrop"
   ></div>
   
   <!-- Modal Container -->
@@ -132,37 +147,35 @@
       <div class="overflow-y-auto flex-1 p-2">
         {#each configs as config}
           <button
-            class="w-full flex items-center gap-3 px-3 py-3 rounded-md transition-all duration-150 text-left {config.id === activeConfigId ? 'bg-[var(--color-primary)]/10 border border-[var(--color-primary)]/30' : 'hover:bg-[var(--color-bg-secondary)] border border-transparent'} {config.status === 'unavailable' ? 'opacity-60' : ''}"
+            class="w-full flex items-center gap-2 px-2 py-1.5 rounded-md transition-all duration-150 text-left {config.id === activeConfigId ? 'bg-[var(--color-primary)]/10 border border-[var(--color-primary)]/30' : 'hover:bg-[var(--color-bg-secondary)] border border-transparent'} {config.status === 'unavailable' ? 'opacity-60' : ''}"
             onclick={() => handleSelect(config.id)}
           >
             <!-- Emoji -->
-            <span class="text-2xl shrink-0">{config.emoji}</span>
+            <span class="text-base shrink-0 leading-none">{config.emoji}</span>
             
             <!-- Info -->
-            <div class="flex-1 min-w-0">
-              <div class="flex items-center gap-2">
-                <span class="text-sm font-medium truncate text-[var(--color-text)]">
-                  {config.name}
+            <div class="flex-1 min-w-0 flex items-center gap-2">
+              <span class="text-sm font-medium truncate text-[var(--color-text)]">
+                {config.name}
+              </span>
+              {#if config.isDefault}
+                <span class="px-1.5 py-0.5 text-[10px] bg-[var(--color-primary)]/10 text-[var(--color-primary)] rounded shrink-0 leading-none">
+                  默认
                 </span>
-                {#if config.isDefault}
-                  <span class="px-1.5 py-0.5 text-[10px] bg-[var(--color-primary)]/10 text-[var(--color-primary)] rounded shrink-0">
-                    默认
-                  </span>
-                {/if}
-              </div>
-              <div class="text-xs text-[var(--color-text-muted)] truncate mt-0.5">
+              {/if}
+              <span class="text-xs text-[var(--color-text-muted)] truncate">
                 {config.host}:{config.port}
-              </div>
+              </span>
             </div>
             
             <!-- Status & Check -->
-            <div class="flex items-center gap-2 shrink-0">
+            <div class="flex items-center gap-1.5 shrink-0">
               <span class="text-xs {getStatusColor(config.status, checkingConfigs.has(config.id))}">
                 {getStatusIcon(config.status, checkingConfigs.has(config.id))}
               </span>
               
               {#if config.id === activeConfigId}
-                <svg class="w-5 h-5 text-[var(--color-primary)]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <svg class="w-4 h-4 text-[var(--color-primary)]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
                 </svg>
               {/if}

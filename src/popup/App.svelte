@@ -1,5 +1,6 @@
 <script lang="ts">
   import { onMount } from 'svelte';
+  import { SvelteSet } from 'svelte/reactivity';
   import { ClashAPI } from '$lib/services/clash-api';
   import { storage } from '$lib/services/storage';
   import type { ExtensionConfig, ClashVersion, ProxyNode, ProxyGroup, ThemeMode, Connection, FontFamily } from '$lib/types';
@@ -34,10 +35,12 @@
   let isLoadingGroups = $state<boolean>(true);
   let isLoadingConnections = $state<boolean>(true);
   let isTogglingProxy = $state<boolean>(false);
-  let testingLatencyGroups = $state<Set<string>>(new Set());
-  let testingLatencyNodes = $state<Set<string>>(new Set());
-  let failedTestGroups = $state<Set<string>>(new Set());
-  let failedTestNodes = $state<Set<string>>(new Set());
+  let testingLatencyGroups = $state<SvelteSet<string>>(new SvelteSet());
+  let testingLatencyNodes = $state<SvelteSet<string>>(new SvelteSet());
+  let failedTestGroups = $state<SvelteSet<string>>(new SvelteSet());
+  let failedTestNodes = $state<SvelteSet<string>>(new SvelteSet());
+  const groupLatencyTestRuns = new Map<string, symbol>();
+  const nodeLatencyTestRuns = new Map<string, symbol>();
   
   let apiError = $state<string>('');
   let expandedGroups = $state<Set<string>>(new Set());
@@ -145,23 +148,51 @@
       console.error('Failed to get current tab:', err);
     }
   }
-  
+
+  function isCurrentApi(requestApi: ClashAPI, requestConfigId: string | null): boolean {
+    return requestApi === api && requestConfigId === activeConfigId;
+  }
+
+  function clearLatencyState() {
+    groupLatencyTestRuns.clear();
+    nodeLatencyTestRuns.clear();
+    testingLatencyGroups = new SvelteSet();
+    testingLatencyNodes = new SvelteSet();
+    failedTestGroups = new SvelteSet();
+    failedTestNodes = new SvelteSet();
+  }
+
   async function fetchVersion() {
+    const requestApi = api;
+    const requestConfigId = activeConfigId;
+    if (!requestApi) return;
+
     try {
-      version = await api!.getVersion();
+      const nextVersion = await requestApi.getVersion();
+      if (isCurrentApi(requestApi, requestConfigId)) {
+        version = nextVersion;
+      }
     } catch (err) {
-      apiError = 'Failed to connect to Clash';
+      if (isCurrentApi(requestApi, requestConfigId)) {
+        apiError = 'Failed to connect to Clash';
+      }
       console.error('Failed to fetch version:', err);
     }
   }
-  
+
   async function fetchProxyPort() {
+    const requestApi = api;
+    const requestConfigId = activeConfigId;
+    const requestProxyType = activeConfig?.proxyType ?? 'http';
+    if (!requestApi) return;
+
     try {
-      const config = await api!.getConfig();
-      const proxyType = activeConfig?.proxyType ?? 'http';
+      const config = await requestApi.getConfig();
+      if (!isCurrentApi(requestApi, requestConfigId)) return;
+
       if (config['mixed-port']) {
         proxyPort = config['mixed-port'];
-      } else if (proxyType === 'socks') {
+      } else if (requestProxyType === 'socks') {
         proxyPort = config['socks-port'] || config.port || null;
       } else {
         proxyPort = config.port || config['socks-port'] || null;
@@ -170,17 +201,21 @@
       console.error('Failed to fetch proxy port:', err);
     }
   }
-  
+
   async function fetchProxyGroups() {
-    if (!api) return;
+    const requestApi = api;
+    const requestConfigId = activeConfigId;
+    if (!requestApi) return;
     
     try {
       isLoadingGroups = true;
-      const response = await api.getProxies();
-      allProxies = response.proxies || {};
+      const response = await requestApi.getProxies();
+      if (!isCurrentApi(requestApi, requestConfigId)) return;
+
+      const responseProxies = response.proxies || {};
       
       const groups: ProxyGroup[] = [];
-      for (const [name, proxy] of Object.entries(allProxies)) {
+      for (const [name, proxy] of Object.entries(responseProxies)) {
         if (name === 'GLOBAL') continue;
         if (PROXY_GROUP_TYPES.includes(proxy.type as typeof PROXY_GROUP_TYPES[number])) {
           groups.push({
@@ -193,8 +228,9 @@
         }
       }
       
-      const globalProxy = allProxies['GLOBAL'];
+      const globalProxy = responseProxies['GLOBAL'];
       const sortIndex = globalProxy?.all ?? [];
+      allProxies = responseProxies;
       proxyGroups = groups.sort((a, b) => {
         const aIndex = sortIndex.indexOf(a.name);
         const bIndex = sortIndex.indexOf(b.name);
@@ -206,21 +242,29 @@
     } catch (err) {
       console.error('Failed to fetch proxy groups:', err);
     } finally {
-      isLoadingGroups = false;
+      if (isCurrentApi(requestApi, requestConfigId)) {
+        isLoadingGroups = false;
+      }
     }
   }
-  
+
   async function fetchConnections() {
-    if (!api) return;
+    const requestApi = api;
+    const requestConfigId = activeConfigId;
+    if (!requestApi) return;
     
     try {
       isLoadingConnections = true;
-      const data = await api.getConnections();
-      connections = data.connections || [];
+      const data = await requestApi.getConnections();
+      if (isCurrentApi(requestApi, requestConfigId)) {
+        connections = data.connections || [];
+      }
     } catch (err) {
       console.error('Failed to fetch connections:', err);
     } finally {
-      isLoadingConnections = false;
+      if (isCurrentApi(requestApi, requestConfigId)) {
+        isLoadingConnections = false;
+      }
     }
   }
   
@@ -257,6 +301,9 @@
       allProxies = {};
       connections = [];
       version = null;
+      proxyPort = null;
+      expandedGroups = new Set();
+      clearLatencyState();
       
       await chrome.runtime.sendMessage({ 
         type: 'SWITCH_CONFIG', 
@@ -270,7 +317,9 @@
       }
       
       api = new ClashAPI(config.host, config.port, config.secret);
-      const isAvailable = await api.healthCheck(3000);
+      const requestApi = api;
+      const isAvailable = await requestApi.healthCheck(3000);
+      if (!isCurrentApi(requestApi, configId)) return;
       
       const configIndex = configs.findIndex(c => c.id === configId);
       if (configIndex !== -1) {
@@ -303,10 +352,14 @@
   }
   
   async function switchProxyNode(groupName: string, nodeName: string) {
-    if (!api) return;
+    const requestApi = api;
+    const requestConfigId = activeConfigId;
+    if (!requestApi) return;
     
     try {
-      await api.switchProxy(groupName, nodeName);
+      await requestApi.switchProxy(groupName, nodeName);
+      if (!isCurrentApi(requestApi, requestConfigId)) return;
+
       expandedGroups.delete(groupName);
       expandedGroups = expandedGroups;
       await fetchProxyGroups();
@@ -314,47 +367,61 @@
       console.error('Failed to switch proxy:', err);
     }
   }
-  
+
   async function testGroupLatency(groupName: string) {
-    if (!api) return;
+    const requestApi = api;
+    const requestConfigId = activeConfigId;
+    if (!requestApi || testingLatencyGroups.has(groupName)) return;
+    const testRun = Symbol(groupName);
+    groupLatencyTestRuns.set(groupName, testRun);
     
     try {
       testingLatencyGroups.add(groupName);
-      testingLatencyGroups = testingLatencyGroups;
       failedTestGroups.delete(groupName);
-      failedTestGroups = failedTestGroups;
       
-      const result = await api.testGroupDelay(groupName);
+      const result = await requestApi.testGroupDelay(groupName);
+      if (!isCurrentApi(requestApi, requestConfigId) || groupLatencyTestRuns.get(groupName) !== testRun) {
+        return;
+      }
       
+      const nextAllProxies = { ...allProxies };
       for (const [nodeName, delay] of Object.entries(result)) {
-        if (allProxies[nodeName]) {
-          allProxies[nodeName] = {
-            ...allProxies[nodeName],
-            history: [...(allProxies[nodeName].history || []), { time: new Date().toISOString(), delay }]
+        if (nextAllProxies[nodeName]) {
+          nextAllProxies[nodeName] = {
+            ...nextAllProxies[nodeName],
+            history: [...(nextAllProxies[nodeName].history || []), { time: new Date().toISOString(), delay }]
           };
         }
       }
-      allProxies = allProxies;
+      allProxies = nextAllProxies;
     } catch (err) {
       console.error('Failed to test group latency:', err);
-      failedTestGroups.add(groupName);
-      failedTestGroups = failedTestGroups;
+      if (isCurrentApi(requestApi, requestConfigId) && groupLatencyTestRuns.get(groupName) === testRun) {
+        failedTestGroups.add(groupName);
+      }
     } finally {
-      testingLatencyGroups.delete(groupName);
-      testingLatencyGroups = testingLatencyGroups;
+      if (groupLatencyTestRuns.get(groupName) === testRun) {
+        groupLatencyTestRuns.delete(groupName);
+        testingLatencyGroups.delete(groupName);
+      }
     }
   }
-  
+
   async function testNodeLatency(nodeName: string) {
-    if (!api) return;
+    const requestApi = api;
+    const requestConfigId = activeConfigId;
+    if (!requestApi || testingLatencyNodes.has(nodeName)) return;
+    const testRun = Symbol(nodeName);
+    nodeLatencyTestRuns.set(nodeName, testRun);
     
     try {
       testingLatencyNodes.add(nodeName);
-      testingLatencyNodes = testingLatencyNodes;
       failedTestNodes.delete(nodeName);
-      failedTestNodes = failedTestNodes;
       
-      const result = await api.testProxyDelay(nodeName);
+      const result = await requestApi.testProxyDelay(nodeName);
+      if (!isCurrentApi(requestApi, requestConfigId) || nodeLatencyTestRuns.get(nodeName) !== testRun) {
+        return;
+      }
       
       if (allProxies[nodeName]) {
         allProxies[nodeName] = {
@@ -365,11 +432,14 @@
       }
     } catch (err) {
       console.error('Failed to test node latency:', err);
-      failedTestNodes.add(nodeName);
-      failedTestNodes = failedTestNodes;
+      if (isCurrentApi(requestApi, requestConfigId) && nodeLatencyTestRuns.get(nodeName) === testRun) {
+        failedTestNodes.add(nodeName);
+      }
     } finally {
-      testingLatencyNodes.delete(nodeName);
-      testingLatencyNodes = testingLatencyNodes;
+      if (nodeLatencyTestRuns.get(nodeName) === testRun) {
+        nodeLatencyTestRuns.delete(nodeName);
+        testingLatencyNodes.delete(nodeName);
+      }
     }
   }
   

@@ -12,6 +12,7 @@ import type {
 export class ClashAPI {
   private baseUrl: string;
   private secret: string;
+  private static readonly DEFAULT_TIMEOUT_MS = 10000;
 
   constructor(host: string, port: number, secret: string = '') {
     this.baseUrl = `http://${host}:${port}`;
@@ -28,23 +29,40 @@ export class ClashAPI {
     return h;
   }
 
-  private async request<T>(path: string, options: RequestInit = {}): Promise<T> {
+  private async request<T>(
+    path: string,
+    options: RequestInit = {},
+    timeoutMs: number = ClashAPI.DEFAULT_TIMEOUT_MS,
+  ): Promise<T> {
     const url = `${this.baseUrl}${path}`;
-    const res = await fetch(url, {
-      ...options,
-      headers: { ...this.headers, ...options.headers as Record<string, string> },
-    });
-    if (!res.ok) {
-      const error = await res.json().catch(() => ({ message: res.statusText }));
-      throw new Error(error.message || `API error: ${res.status}`);
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+
+    try {
+      const res = await fetch(url, {
+        ...options,
+        headers: { ...this.headers, ...options.headers as Record<string, string> },
+        signal: controller.signal,
+      });
+      if (!res.ok) {
+        const error = await res.json().catch(() => ({ message: res.statusText }));
+        throw new Error(error.message || `API error: ${res.status}`);
+      }
+      // Some endpoints (PUT/DELETE) return 204 No Content with empty body
+      if (res.status === 204 || res.headers.get('content-length') === '0') {
+        return undefined as T;
+      }
+      const text = await res.text();
+      if (!text) return undefined as T;
+      return JSON.parse(text);
+    } catch (error) {
+      if (controller.signal.aborted) {
+        throw new Error(`Request timed out after ${timeoutMs}ms`);
+      }
+      throw error;
+    } finally {
+      clearTimeout(timeoutId);
     }
-    // Some endpoints (PUT/DELETE) return 204 No Content with empty body
-    if (res.status === 204 || res.headers.get('content-length') === '0') {
-      return undefined as T;
-    }
-    const text = await res.text();
-    if (!text) return undefined as T;
-    return JSON.parse(text);
   }
 
   // System Info
@@ -88,6 +106,8 @@ export class ClashAPI {
   ): Promise<DelayResult> {
     return this.request<DelayResult>(
       `/proxies/${encodeURIComponent(name)}/delay?url=${encodeURIComponent(url)}&timeout=${timeout}`,
+      {},
+      timeout + 2000,
     );
   }
 
@@ -98,6 +118,8 @@ export class ClashAPI {
   ): Promise<Record<string, number>> {
     return this.request<Record<string, number>>(
       `/group/${encodeURIComponent(groupName)}/delay?url=${encodeURIComponent(url)}&timeout=${timeout}`,
+      {},
+      timeout + 2000,
     );
   }
 
@@ -122,10 +144,7 @@ export class ClashAPI {
   // Health Check (light)
   async healthCheck(timeoutMs: number = 3000): Promise<boolean> {
     try {
-      const controller = new AbortController();
-      const tid = setTimeout(() => controller.abort(), timeoutMs);
-      await this.request<ClashVersion>('/version');
-      clearTimeout(tid);
+      await this.request<ClashVersion>('/version', {}, timeoutMs);
       return true;
     } catch {
       return false;

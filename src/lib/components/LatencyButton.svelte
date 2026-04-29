@@ -53,7 +53,7 @@
     onTest();
   }}
   disabled={isTesting}
-  class="{sizeClasses[size]} rounded text-center transition-colors border border-transparent {
+  class="{sizeClasses[size]} rounded text-center transition-all duration-150 border border-transparent hover:scale-105 active:scale-95 {
     isTesting
       ? 'text-[var(--color-text-muted)]'
       : failed

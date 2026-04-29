@@ -130,9 +130,9 @@
               role="option"
               aria-selected={isSelected}
               tabindex="0"
-              class="w-full flex items-center justify-between px-3 py-1.5 text-xs rounded-md transition-colors cursor-pointer {isSelected 
-                ? 'bg-[var(--color-primary)]/10 text-[var(--color-primary)]' 
-                : 'hover:bg-[var(--color-bg-secondary)] text-[var(--color-text-secondary)]'}"
+              class="w-full flex items-center justify-between px-3 py-1 text-xs rounded-md transition-all duration-150 cursor-pointer hover:-translate-y-px active:translate-y-0 active:scale-[0.99] {isSelected 
+                ? 'bg-[var(--color-primary)]/10 text-[var(--color-primary)] hover:bg-[var(--color-primary)]/15' 
+                : 'hover:bg-[var(--color-bg-secondary)] text-[var(--color-text-secondary)] hover:text-[var(--color-text)]'}"
             >
               <span class="truncate flex-1 text-left">{nodeName}</span>
               <div class="flex items-center gap-1 ml-2 shrink-0 h-5">
@@ -150,7 +150,7 @@
             </div>
           {:else}
             <div
-              class="w-full flex items-center justify-between px-3 py-1.5 text-xs rounded-md {isSelected 
+              class="w-full flex items-center justify-between px-3 py-1 text-xs rounded-md transition-colors {isSelected 
                 ? 'bg-[var(--color-primary)]/10 text-[var(--color-primary)]' 
                 : 'text-[var(--color-text-secondary)]'}"
             >

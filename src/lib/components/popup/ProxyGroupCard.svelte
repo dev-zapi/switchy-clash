@@ -36,7 +36,7 @@
   }
 </script>
 
-<div class="relative bg-[var(--color-bg-secondary)] rounded-md px-3 py-1.5 shadow-sm hover:shadow-md transition-shadow cursor-pointer flex items-center gap-3">
+<div class="relative bg-[var(--color-bg-secondary)] rounded-md px-3 py-1.5 shadow-sm hover:shadow-md hover:bg-[var(--color-bg-tertiary)] hover:-translate-y-px active:translate-y-0 active:scale-[0.995] transition-all duration-150 cursor-pointer flex items-center gap-3">
   <div
     onclick={onToggleExpanded}
     onkeydown={(e) => {
@@ -74,7 +74,7 @@
   </div>
 
   <LatencyButton
-    delay={groupLatency}
+    delay={currentNodeLatency}
     isTesting={isTesting}
     failed={failedTest}
     onTest={onTestLatency}

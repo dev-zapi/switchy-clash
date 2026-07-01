@@ -87,8 +87,18 @@
     if (api) {
       fetchVersion();
       fetchProxyPort();
-      setTimeout(() => fetchProxyGroups(), 50);
-      setTimeout(() => fetchConnections(), 150);
+      // 只有 API 类型才加载代理组和连接
+      if (activeConfig?.configType === 'api') {
+        setTimeout(() => fetchProxyGroups(), 50);
+        setTimeout(() => fetchConnections(), 150);
+      } else {
+        // 纯代理模式清空代理组和连接数据
+        proxyGroups = [];
+        allProxies = {};
+        connections = [];
+        isLoadingGroups = false;
+        isLoadingConnections = false;
+      }
     }
   });
   
@@ -128,7 +138,20 @@
       
       const activeConfig = configs.find(c => c.id === activeConfigId);
       if (activeConfig) {
-        api = new ClashAPI(activeConfig.host, activeConfig.port, activeConfig.secret);
+        // 纯代理模式处理
+        if (activeConfig.configType === 'proxy-only') {
+          proxyPort = activeConfig.proxyPort || null;
+          api = null;
+          version = null;
+          proxyGroups = [];
+          allProxies = {};
+          connections = [];
+          isLoadingGroups = false;
+          isLoadingConnections = false;
+        } else {
+          // API 控制模式
+          api = new ClashAPI(activeConfig.host, activeConfig.port, activeConfig.secret);
+        }
       }
     } catch (err) {
       apiError = err instanceof Error ? err.message : 'Failed to initialize';
@@ -205,7 +228,15 @@
   async function fetchProxyGroups() {
     const requestApi = api;
     const requestConfigId = activeConfigId;
-    if (!requestApi) return;
+    const requestConfigType = activeConfig?.configType;
+    
+    // 只有 API 类型才加载代理组
+    if (!requestApi || requestConfigType !== 'api') {
+      proxyGroups = [];
+      allProxies = {};
+      isLoadingGroups = false;
+      return;
+    }
     
     try {
       isLoadingGroups = true;
@@ -316,6 +347,36 @@
         throw new Error('Config not found');
       }
       
+      // 纯代理模式处理
+      if (config.configType === 'proxy-only') {
+        // 设置代理端口为配置的 proxyPort
+        proxyPort = config.proxyPort || null;
+        
+        const configIndex = configs.findIndex(c => c.id === configId);
+        if (configIndex !== -1) {
+          configs[configIndex].status = config.proxyPort && config.proxyPort > 0 ? 'available' : 'useless';
+          configs = [...configs];
+        }
+        
+        if (!config.proxyPort || config.proxyPort <= 0) {
+          apiError = '纯代理模式未设置有效的代理端口';
+          isLoadingGroups = false;
+          isLoadingConnections = false;
+          return;
+        }
+        
+        // 纯代理模式不需要 API 连接
+        api = null;
+        isLoadingGroups = false;
+        isLoadingConnections = false;
+        
+        if (wasProxyEnabled) {
+          await chrome.runtime.sendMessage({ type: 'ENABLE_PROXY' });
+        }
+        return;
+      }
+      
+      // API 控制模式处理
       api = new ClashAPI(config.host, config.port, config.secret);
       const requestApi = api;
       const isAvailable = await requestApi.healthCheck(3000);
@@ -459,7 +520,7 @@
   }
   
   function openDashboard() {
-    if (activeConfig) {
+    if (activeConfig && activeConfig.configType === 'api') {
       chrome.tabs.create({ url: `http://${activeConfig.host}:${activeConfig.port}/ui` });
     }
   }
@@ -524,16 +585,32 @@
       {allProxies}
     />
     
-    <ProxyGroups
-      {proxyGroups}
-      isLoading={isLoading || isLoadingGroups}
-      {allProxies}
-      {testingLatencyGroups}
-      {failedTestGroups}
-      onRefresh={fetchProxyGroups}
-      onTestLatency={testGroupLatency}
-      onToggleExpanded={toggleGroupExpanded}
-    />
+    <!-- 只有 API 类型才显示代理组 -->
+    {#if activeConfig?.configType === 'api' && isProxyEnabled}
+      <ProxyGroups
+        {proxyGroups}
+        isLoading={isLoading || isLoadingGroups}
+        {allProxies}
+        {testingLatencyGroups}
+        {failedTestGroups}
+        onRefresh={fetchProxyGroups}
+        onTestLatency={testGroupLatency}
+        onToggleExpanded={toggleGroupExpanded}
+      />
+    {:else if activeConfig?.configType === 'proxy-only' && isProxyEnabled}
+      <!-- 纯代理模式提示 -->
+      <div class="px-3 py-4">
+        <div class="p-3 rounded-lg bg-[var(--color-bg-secondary)] border border-[var(--color-border)]">
+          <div class="flex items-center gap-2 text-sm text-[var(--color-text-secondary)]">
+            <span class="text-base">ℹ️</span>
+            <span>纯代理模式不支持节点切换和延迟测试</span>
+          </div>
+          <div class="mt-2 text-xs text-[var(--color-text-muted)]">
+            要使用完整功能，请切换到 API 控制类型的配置
+          </div>
+        </div>
+      </div>
+    {/if}
   {/if}
   
   {#each proxyGroups as group}

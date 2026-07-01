@@ -114,7 +114,7 @@
     transition:scale={{ start: 0.95, duration: 150 }}
   >
     <div
-      class="bg-[var(--color-bg)] rounded-lg max-h-[60vh] w-full max-w-sm flex flex-col border border-[var(--color-border)] shadow-xl"
+      class="bg-[var(--color-bg)] rounded-lg max-h-[400px] w-full max-w-sm flex flex-col border border-[var(--color-border)] shadow-xl"
       role="dialog"
       aria-modal="true"
       aria-labelledby="config-modal-title"

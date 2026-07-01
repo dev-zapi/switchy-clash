@@ -542,7 +542,7 @@
   }
 </script>
 
-<div class="w-[420px] max-h-[550px] overflow-y-auto bg-[var(--color-bg)] text-[var(--color-text)] font-sans">
+<div class="w-[420px] max-h-[550px] min-h-[380px] overflow-y-auto bg-[var(--color-bg)] text-[var(--color-text)] font-sans">
   {#if !isLoading && !hasConfigs}
     <div class="flex flex-col items-center justify-center p-8 text-center">
       <div class="text-4xl mb-4">⚙️</div>

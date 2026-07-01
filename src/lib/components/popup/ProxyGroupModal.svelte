@@ -89,7 +89,7 @@
     transition:scale={{ start: 0.95, duration: 150 }}
   >
     <div
-      class="bg-[var(--color-bg)] rounded-lg max-h-[70vh] w-full flex flex-col border border-[var(--color-border)] shadow-xl pointer-events-auto"
+      class="bg-[var(--color-bg)] rounded-lg max-h-[450px] w-full flex flex-col border border-[var(--color-border)] shadow-xl pointer-events-auto"
     >
       <div class="flex items-center justify-between px-4 py-3 border-b border-[var(--color-border)] shrink-0">
         <div>

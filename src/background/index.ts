@@ -175,15 +175,31 @@ async function autoSwitch(): Promise<void> {
   if (activeId) {
     const activeConfig = configs.find((c) => c.id === activeId);
     if (activeConfig && await hasHostPermission(activeConfig.host)) {
-      const api = getAPI(activeConfig);
-      const available = await api.healthCheck();
-      if (available) {
-        const clashConfig = await api.getConfig();
-        const hasPort = ProxyService.hasAvailablePort(clashConfig, activeConfig.proxyType);
-        await storage.updateConfig(activeConfig.id, { status: hasPort ? 'available' : 'useless' });
-        if (hasPort) return; // Current config is fine
+      let isAvailable = false;
+      
+      if (activeConfig.configType === 'proxy-only') {
+        // 纯代理模式：检查 proxyPort 是否有效
+        isAvailable = activeConfig.proxyPort !== undefined && activeConfig.proxyPort > 0;
+        await storage.updateConfig(activeConfig.id, {
+          status: isAvailable ? 'available' : 'useless'
+        });
+      } else {
+        // API 控制模式：通过 API 健康检查
+        const api = getAPI(activeConfig);
+        const available = await api.healthCheck();
+        if (available) {
+          const clashConfig = await api.getConfig();
+          const hasPort = ProxyService.hasAvailablePort(clashConfig, activeConfig.proxyType);
+          await storage.updateConfig(activeConfig.id, {
+            status: hasPort ? 'available' : 'useless'
+          });
+          isAvailable = hasPort;
+        } else {
+          await storage.updateConfig(activeConfig.id, { status: 'unavailable' });
+        }
       }
-      await storage.updateConfig(activeConfig.id, { status: 'unavailable' });
+      
+      if (isAvailable) return; // Current config is fine
     }
   }
 
@@ -191,14 +207,22 @@ async function autoSwitch(): Promise<void> {
   const sorted = [...configs].sort((a, b) => b.lastUsed - a.lastUsed);
   for (const config of sorted) {
     if (!(await hasHostPermission(config.host))) continue;
-    const api = getAPI(config);
-    const available = await api.healthCheck();
     
     let status: 'available' | 'unavailable' | 'useless' = 'unavailable';
-    if (available) {
-      const clashConfig = await api.getConfig();
-      const hasPort = ProxyService.hasAvailablePort(clashConfig, config.proxyType);
-      status = hasPort ? 'available' : 'useless';
+    
+    if (config.configType === 'proxy-only') {
+      // 纯代理模式：检查 proxyPort
+      status = config.proxyPort !== undefined && config.proxyPort > 0 ? 'available' : 'useless';
+    } else {
+      // API 控制模式：通过 API 健康检查
+      const api = getAPI(config);
+      const available = await api.healthCheck();
+      
+      if (available) {
+        const clashConfig = await api.getConfig();
+        const hasPort = ProxyService.hasAvailablePort(clashConfig, config.proxyType);
+        status = hasPort ? 'available' : 'useless';
+      }
     }
     
     await storage.updateConfig(config.id, { status });

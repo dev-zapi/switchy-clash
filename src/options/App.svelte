@@ -89,7 +89,9 @@
 			...DEFAULT_CONFIG,
 			id: generateId(),
 			isDefault: configs.length === 0, // First config is default
-			lastUsed: Date.now()
+			lastUsed: Date.now(),
+			configType: 'api',
+			proxyPort: undefined
 		};
 		isEditing = true;
 		formErrors = {};
@@ -121,8 +123,18 @@
 			errors.host = 'Host is required';
 		}
 
-		if (config.port < 1 || config.port > 65535) {
-			errors.port = 'Port must be between 1 and 65535';
+		// API 模式：验证 API 端口
+		if (config.configType === 'api') {
+			if (config.port < 1 || config.port > 65535) {
+				errors.port = 'Port must be between 1 and 65535';
+			}
+		}
+
+		// proxy-only 模式：验证代理端口
+		if (config.configType === 'proxy-only') {
+			if (!config.proxyPort || config.proxyPort < 1 || config.proxyPort > 65535) {
+				errors.proxyPort = '代理端口必须在 1-65535 之间';
+			}
 		}
 
 		formErrors = errors;
@@ -205,6 +217,15 @@
 
 	async function handleTestConnection(): Promise<void> {
 		if (!editingConfig) return;
+
+		// proxy-only 模式不需要测试 API 连接
+		if (editingConfig.configType === 'proxy-only') {
+			testStatus = { 
+				message: '纯代理模式无需测试 API 连接。保存后，代理将通过指定端口启用。', 
+				type: 'info' 
+			};
+			return;
+		}
 
 		// Request host permission for non-localhost hosts before testing
 		if (!isLocalhostHost(editingConfig.host)) {
@@ -501,7 +522,7 @@
 												{config.status === 'available' ? '🟢' : config.status === 'unavailable' ? '🔴' : '⚪'}
 											</span>
 											<p class="text-xs text-[var(--color-text-secondary)] truncate">
-												{config.host}:{config.port}
+												{config.host}:{config.configType === 'proxy-only' ? config.proxyPort : config.port}
 											</p>
 										</div>
 									</div>
@@ -637,38 +658,78 @@
 								{/if}
 							</div>
 
-							<!-- Port -->
+							<!-- Config Type -->
 							<div class="md:col-span-1">
-								<label for="config-port" class="block text-sm font-medium text-[var(--color-text-secondary)] mb-1.5">
-									Port <span class="text-[var(--color-danger)]">*</span>
+								<label for="config-type" class="block text-sm font-medium text-[var(--color-text-secondary)] mb-1.5">
+									配置类型 <span class="text-[var(--color-danger)]">*</span>
 								</label>
-								<input
-									id="config-port"
-									type="number"
-									bind:value={editingConfig.port}
-									min="1"
-									max="65535"
-									placeholder="9090"
-									class="w-full px-3 py-2 bg-[var(--color-bg)] border border-[var(--color-border)] rounded text-[var(--color-text)] placeholder:text-[var(--color-text-muted)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary)] focus:border-transparent transition-all"
-								/>
-								{#if formErrors.port}
-									<p class="mt-1 text-xs text-[var(--color-danger)]">{formErrors.port}</p>
-								{/if}
+								<select
+									id="config-type"
+									bind:value={editingConfig.configType}
+									class="w-full px-3 py-2 bg-[var(--color-bg)] border border-[var(--color-border)] rounded text-[var(--color-text)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary)] focus:border-transparent transition-all"
+								>
+									<option value="api">API 控制（完整功能）</option>
+									<option value="proxy-only">纯代理（仅启用代理）</option>
+								</select>
 							</div>
 
-							<!-- Secret -->
-							<div class="md:col-span-2">
-								<label for="config-secret" class="block text-sm font-medium text-[var(--color-text-secondary)] mb-1.5">
-									Secret (optional)
-								</label>
-								<input
-									id="config-secret"
-									type="password"
-									bind:value={editingConfig.secret}
-									placeholder="API secret token"
-									class="w-full px-3 py-2 bg-[var(--color-bg)] border border-[var(--color-border)] rounded text-[var(--color-text)] placeholder:text-[var(--color-text-muted)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary)] focus:border-transparent transition-all"
-								/>
-							</div>
+							<!-- API Port - 仅 API 模式显示 -->
+							{#if editingConfig.configType === 'api'}
+								<div class="md:col-span-1">
+									<label for="config-port" class="block text-sm font-medium text-[var(--color-text-secondary)] mb-1.5">
+										API 端口 <span class="text-[var(--color-danger)]">*</span>
+									</label>
+									<input
+										id="config-port"
+										type="number"
+										bind:value={editingConfig.port}
+										min="1"
+										max="65535"
+										placeholder="9090"
+										class="w-full px-3 py-2 bg-[var(--color-bg)] border border-[var(--color-border)] rounded text-[var(--color-text)] placeholder:text-[var(--color-text-muted)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary)] focus:border-transparent transition-all"
+									/>
+									{#if formErrors.port}
+										<p class="mt-1 text-xs text-[var(--color-danger)]">{formErrors.port}</p>
+									{/if}
+								</div>
+							{/if}
+
+							<!-- Proxy Port - 仅 proxy-only 模式显示 -->
+							{#if editingConfig.configType === 'proxy-only'}
+								<div class="md:col-span-1">
+									<label for="config-proxy-port" class="block text-sm font-medium text-[var(--color-text-secondary)] mb-1.5">
+										代理端口 <span class="text-[var(--color-danger)]">*</span>
+									</label>
+									<input
+										id="config-proxy-port"
+										type="number"
+										bind:value={editingConfig.proxyPort}
+										min="1"
+										max="65535"
+										placeholder="7890"
+										class="w-full px-3 py-2 bg-[var(--color-bg)] border border-[var(--color-border)] rounded text-[var(--color-text)] placeholder:text-[var(--color-text-muted)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary)] focus:border-transparent transition-all"
+									/>
+									{#if formErrors.proxyPort}
+										<p class="mt-1 text-xs text-[var(--color-danger)]">{formErrors.proxyPort}</p>
+									{/if}
+								</div>
+							{/if}
+
+							<!-- Secret - 仅 API 模式显示 -->
+							{#if editingConfig.configType === 'api'}
+								<div class="md:col-span-2">
+									<label for="config-secret" class="block text-sm font-medium text-[var(--color-text-secondary)] mb-1.5">
+										Secret (optional)
+									</label>
+									<input
+										id="config-secret"
+										type="password"
+										bind:value={editingConfig.secret}
+										placeholder="API secret token"
+										class="w-full px-3 py-2 bg-[var(--color-bg)] border border-[var(--color-border)] rounded text-[var(--color-text)] placeholder:text-[var(--color-text-muted)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary)] focus:border-transparent transition-all"
+									/>
+								</div>
+							{/if}
 
 							<!-- Proxy Type -->
 							<div class="md:col-span-1">

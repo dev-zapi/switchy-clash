@@ -98,13 +98,15 @@ class StorageService {
     await this.setConfigs(configs);
   }
 
-  async updateConfig(id: string, updates: Partial<ExtensionConfig>): Promise<void> {
+  async updateConfig(id: string, updates: Partial<ExtensionConfig>): Promise<boolean> {
     const configs = await this.getConfigs();
     const idx = configs.findIndex((c) => c.id === id);
-    if (idx !== -1) {
-      configs[idx] = { ...configs[idx], ...updates };
-      await this.setConfigs(configs);
+    if (idx === -1) {
+      return false;
     }
+    configs[idx] = { ...configs[idx], ...updates };
+    await this.setConfigs(configs);
+    return true;
   }
 
   async deleteConfig(id: string): Promise<void> {
@@ -180,12 +182,14 @@ class StorageService {
   // Listen for changes
   onChanged(
     callback: (changes: Record<string, chrome.storage.StorageChange>) => void,
-  ): void {
-    chrome.storage.onChanged.addListener((changes: Record<string, unknown>, areaName: string) => {
+  ): () => void {
+    const listener = (changes: Record<string, unknown>, areaName: string) => {
       if (areaName === 'local') {
         callback(changes as Record<string, chrome.storage.StorageChange>);
       }
-    });
+    };
+    chrome.storage.onChanged.addListener(listener);
+    return () => chrome.storage.onChanged.removeListener(listener);
   }
 }
 

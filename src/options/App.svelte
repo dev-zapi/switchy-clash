@@ -269,6 +269,15 @@
 		try {
 			const updatedConfigs = await Promise.all(
 				configs.map(async (config) => {
+					// Proxy-only mode: check if proxyPort is valid (no API to check)
+					if (config.configType === 'proxy-only') {
+						return {
+							...config,
+							status: (config.proxyPort && config.proxyPort > 0) ? 'available' as const : 'useless' as const
+						};
+					}
+					
+					// API control mode: check via API health check
 					try {
 						const api = new ClashAPI(config.host, config.port, config.secret);
 						const isAvailable = await api.healthCheck(3000);

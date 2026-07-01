@@ -310,6 +310,9 @@
 			version: 1,
 			configs: configs.map(c => ({
 				...c,
+				// Explicitly include v2.0 fields for compatibility
+				configType: c.configType ?? 'api',
+				proxyPort: c.proxyPort ?? undefined,
 				status: 'unknown' // Reset status on export
 			})),
 			exportDate: new Date().toISOString()
@@ -342,23 +345,35 @@
 					throw new Error('Invalid config file format');
 				}
 
-				const importedConfigs: ExtensionConfig[] = data.configs.map((c: ExtensionConfig) => ({
-					...c,
-					id: generateId(), // Generate new IDs to avoid conflicts
-					status: 'unknown'
-				}));
+				// Validate required fields (name, host) for each imported config
+				const validatedConfigs: ExtensionConfig[] = [];
+				for (const c of data.configs) {
+					if (!c.name || typeof c.name !== 'string' || !c.name.trim()) {
+						throw new Error('Invalid config: missing or empty "name" field');
+					}
+					if (!c.host || typeof c.host !== 'string' || !c.host.trim()) {
+						throw new Error(`Invalid config "${c.name}": missing or empty "host" field`);
+					}
+					
+					// Build config with new ID; let storage.setConfigs auto-migrate configType/proxyPort
+					validatedConfigs.push({
+						...c,
+						id: generateId(), // Generate new IDs to avoid conflicts
+						status: 'unknown'
+					});
+				}
 
 				// Merge with existing or replace
 				const shouldReplace = confirm(
-					`Import ${importedConfigs.length} configurations?\n\nClick "OK" to replace all existing configs, or "Cancel" to append.`
+					`Import ${validatedConfigs.length} configurations?\n\nClick "OK" to replace all existing configs, or "Cancel" to append.`
 				);
 
 				if (shouldReplace) {
-					configs = importedConfigs;
+					configs = validatedConfigs;
 				} else {
 					// Check for duplicate names and append
 					const existingNames = new Set(configs.map(c => c.name));
-					const uniqueConfigs = importedConfigs.filter(c => !existingNames.has(c.name));
+					const uniqueConfigs = validatedConfigs.filter(c => !existingNames.has(c.name));
 					configs = [...configs, ...uniqueConfigs];
 				}
 
@@ -367,8 +382,8 @@
 					configs[0].isDefault = true;
 				}
 
-				await storage.setConfigs(configs);
-				showNotification(`Imported ${importedConfigs.length} configurations`, 'success');
+				await storage.setConfigs(configs); // Auto-migration handled by storage service
+				showNotification(`Imported ${validatedConfigs.length} configurations`, 'success');
 			} catch (error) {
 				console.error('Import failed:', error);
 				showNotification(

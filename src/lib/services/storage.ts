@@ -36,14 +36,60 @@ class StorageService {
     });
   }
 
-  // Configs
-  async getConfigs(): Promise<ExtensionConfig[]> {
-    const result = await this.get('configs');
-    return Array.isArray(result) ? result : [];
+  /**
+   * 迁移单个配置对象以支持向后兼容性
+   * 
+   * 背景：v2.0 引入了 configType 和 proxyPort 字段，v1.x 的配置缺少这些字段。
+   * 
+   * 迁移规则：
+   * - configType 缺失时默认为 'api'（保持 v1.x 行为）
+   * - proxyPort 缺失时默认为 undefined（API 模式下自动获取端口）
+   * 
+   * 注意：此方法仅填充缺失字段，不执行业务逻辑。
+   * 迁移发生在读取时，不修改存储中的原始数据。
+   * 
+   * @param config - 从存储读取的配置对象（可能缺少新字段）
+   * @returns 完整的配置对象，包含所有必需字段
+   */
+  private migrateConfig(config: ExtensionConfig): ExtensionConfig {
+    return {
+      ...config,
+      configType: config.configType ?? 'api',
+      proxyPort: config.proxyPort ?? undefined,
+    };
   }
 
+  // Configs
+  /**
+   * 获取所有配置
+   * 
+   * 背景：v2.0 引入了 configType 和 proxyPort 字段。
+   * 解决方案：读取时自动填充缺失字段，不修改存储中的原始数据。
+   * 
+   * 调用者始终获得完整的配置对象，迁移过程对调用者透明。
+   * 
+   * @returns 迁移后的完整配置数组
+   */
+  async getConfigs(): Promise<ExtensionConfig[]> {
+    const result = await this.get('configs');
+    const configs = Array.isArray(result) ? result : [];
+    // 应用迁移逻辑，确保所有配置都包含 v2.0 新字段
+    return configs.map(config => this.migrateConfig(config));
+  }
+
+  /**
+   * 保存配置列表
+   * 
+   * 在保存前对每个配置应用迁移逻辑，确保：
+   * 1. 新字段有默认值（防止 undefined 传播）
+   * 2. 数据完整性约束
+   * 
+   * @param configs - 要保存的配置数组
+   */
   async setConfigs(configs: ExtensionConfig[]): Promise<void> {
-    return this.set('configs', configs);
+    // 保存前规范化配置，确保所有字段都有有效值
+    const normalizedConfigs = configs.map(config => this.migrateConfig(config));
+    return this.set('configs', normalizedConfigs);
   }
 
   async addConfig(config: ExtensionConfig): Promise<void> {

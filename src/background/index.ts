@@ -138,18 +138,29 @@ async function disableProxy(): Promise<{ success: boolean; error?: string }> {
 async function checkAllConfigs(): Promise<void> {
   const configs = await storage.getConfigs();
   for (const config of configs) {
-    const api = getAPI(config);
-    const available = await api.healthCheck();
+    let status: 'available' | 'unavailable' | 'useless' = 'unavailable';
     
-    if (available) {
-      const clashConfig = await api.getConfig();
-      const hasPort = ProxyService.hasAvailablePort(clashConfig, config.proxyType);
-      await storage.updateConfig(config.id, {
-        status: hasPort ? 'available' : 'useless',
-      });
+    if (config.configType === 'proxy-only') {
+      // Proxy-only mode: check if proxyPort is valid (cannot truly test port availability)
+      if (config.proxyPort && config.proxyPort > 0) {
+        status = 'available';
+      } else {
+        status = 'useless';
+      }
+      
     } else {
-      await storage.updateConfig(config.id, { status: 'unavailable' });
+      // API control mode: check via API health check
+      const api = getAPI(config);
+      const available = await api.healthCheck();
+      
+      if (available) {
+        const clashConfig = await api.getConfig();
+        const hasPort = ProxyService.hasAvailablePort(clashConfig, config.proxyType);
+        status = hasPort ? 'available' : 'useless';
+      }
     }
+    
+    await storage.updateConfig(config.id, { status });
   }
 }
 

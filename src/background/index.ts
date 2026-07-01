@@ -81,15 +81,29 @@ async function enableProxy(): Promise<{ success: boolean; error?: string }> {
   }
 
   try {
-    const api = getAPI(config);
-    const clashConfig = await api.getConfig();
-    const proxyPort = ProxyService.getProxyPort(clashConfig, config.proxyType);
-    
-    if (!ProxyService.hasAvailablePort(clashConfig, config.proxyType)) {
-      await storage.updateConfig(config.id, { status: 'useless' });
-      return { success: false, error: 'No available proxy port in Clash configuration' };
+    let proxyPort: number;
+
+    if (config.configType === 'proxy-only') {
+      // Proxy-only mode: use manually specified proxy port
+      if (!config.proxyPort || config.proxyPort <= 0) {
+        await storage.updateConfig(config.id, { status: 'useless' });
+        return { success: false, error: 'No valid proxy port specified for proxy-only configuration' };
+      }
+      proxyPort = config.proxyPort;
+      await storage.updateConfig(config.id, { status: 'available', lastUsed: Date.now() });
+    } else {
+      // API control mode: get proxy port from Clash API
+      const api = getAPI(config);
+      const clashConfig = await api.getConfig();
+      proxyPort = ProxyService.getProxyPort(clashConfig, config.proxyType);
+
+      if (!ProxyService.hasAvailablePort(clashConfig, config.proxyType)) {
+        await storage.updateConfig(config.id, { status: 'useless' });
+        return { success: false, error: 'No available proxy port in Clash configuration' };
+      }
+      await storage.updateConfig(config.id, { status: 'available', lastUsed: Date.now() });
     }
-    
+
     // Add all config hosts to bypass list so API traffic
     // is not routed through the proxy
     const configs = await storage.getConfigs();
@@ -99,11 +113,7 @@ async function enableProxy(): Promise<{ success: boolean; error?: string }> {
     await ProxyService.enable(config.host, proxyPort, config.proxyType, bypassList);
     await storage.setProxyEnabled(true);
     await updateIcon(true, false, config.emoji);
-    // Update config status
-    await storage.updateConfig(config.id, {
-      status: 'available',
-      lastUsed: Date.now(),
-    });
+
     return { success: true };
   } catch (e) {
     await storage.updateConfig(config.id, { status: 'unavailable' });

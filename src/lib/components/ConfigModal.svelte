@@ -154,18 +154,38 @@
             <span class="text-base shrink-0 leading-none">{config.emoji}</span>
             
             <!-- Info -->
-            <div class="flex-1 min-w-0 flex items-center gap-2">
-              <span class="text-sm font-medium truncate text-[var(--color-text)]">
-                {config.name}
-              </span>
-              {#if config.isDefault}
-                <span class="px-1.5 py-0.5 text-[10px] bg-[var(--color-primary)]/10 text-[var(--color-primary)] rounded shrink-0 leading-none">
-                  默认
+            <div class="flex-1 min-w-0 flex flex-col gap-0.5">
+              <div class="flex items-center gap-2">
+                <span class="text-sm font-medium truncate text-[var(--color-text)]">
+                  {config.name}
                 </span>
-              {/if}
-              <span class="text-xs text-[var(--color-text-muted)] truncate">
-                {config.host}:{config.port}
-              </span>
+                
+                <!-- 配置类型标签 -->
+                {#if config.configType === 'proxy-only'}
+                  <span class="px-1.5 py-0.5 text-[10px] font-medium bg-[var(--color-warning)]/10 text-[var(--color-warning)] rounded leading-none border border-[var(--color-warning)]/20 shrink-0">
+                    纯代理
+                  </span>
+                {:else}
+                  <span class="px-1.5 py-0.5 text-[10px] font-medium bg-[var(--color-primary)]/10 text-[var(--color-primary)] rounded leading-none border border-[var(--color-primary)]/20 shrink-0">
+                    API
+                  </span>
+                {/if}
+                
+                {#if config.isDefault}
+                  <span class="px-1.5 py-0.5 text-[10px] bg-[var(--color-primary)]/10 text-[var(--color-primary)] rounded shrink-0 leading-none">
+                    默认
+                  </span>
+                {/if}
+              </div>
+              
+              <!-- 显示不同端口信息 -->
+              <div class="text-xs text-[var(--color-text-muted)] truncate">
+                {#if config.configType === 'proxy-only'}
+                  {config.host}:{config.proxyPort || '未设置'}
+                {:else}
+                  {config.host}:{config.port}
+                {/if}
+              </div>
             </div>
             
             <!-- Status & Check -->

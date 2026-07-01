@@ -76,41 +76,83 @@
             <div class="flex items-center gap-1.5">
               <span class="text-base">{activeConfig.emoji}</span>
               <span class="text-sm font-bold text-[var(--color-text)] truncate">{activeConfig.name}</span>
+              
+              <!-- 配置类型标签 -->
+              {#if activeConfig.configType === 'proxy-only'}
+                <span class="px-1.5 py-0.5 text-[10px] font-medium bg-[var(--color-warning)]/10 text-[var(--color-warning)] rounded leading-none border border-[var(--color-warning)]/20 shrink-0">
+                  纯代理
+                </span>
+              {:else}
+                <span class="px-1.5 py-0.5 text-[10px] font-medium bg-[var(--color-primary)]/10 text-[var(--color-primary)] rounded leading-none border border-[var(--color-primary)]/20 shrink-0">
+                  API
+                </span>
+              {/if}
+              
               {#if getVersionBadge()}
                 <span class="px-1.5 py-0.5 text-[10px] bg-[var(--color-primary)]/10 text-[var(--color-primary)] rounded-full font-medium shrink-0">
                   {getVersionBadge()}
                 </span>
               {/if}
             </div>
-            <span class="text-xs text-[var(--color-text-muted)] truncate">
-              API: {activeConfig.host}:{activeConfig.port}
-              {#if version?.version}
-                <span class="ml-1">{version.version}</span>
-              {/if}
-            </span>
-            <span class="text-xs text-[var(--color-text-secondary)] truncate">
-              代理：{activeConfig?.proxyType === 'socks' ? 'SOCKS5' : 'HTTP'}://{activeConfig?.host}:{proxyPort ?? '...'}
-            </span>
+            
+            <!-- API 类型显示 API 端口和版本 -->
+            {#if activeConfig.configType === 'api'}
+              <span class="text-xs text-[var(--color-text-muted)] truncate">
+                API: {activeConfig.host}:{activeConfig.port}
+                {#if version?.version}
+                  <span class="ml-1">{version.version}</span>
+                {/if}
+              </span>
+              <span class="text-xs text-[var(--color-text-secondary)] truncate">
+                代理：{activeConfig?.proxyType === 'socks' ? 'SOCKS5' : 'HTTP'}://{activeConfig?.host}:{proxyPort ?? '...'}
+              </span>
+            {:else}
+              <!-- 纯代理类型只显示代理端口 -->
+              <span class="text-xs text-[var(--color-text-secondary)] truncate">
+                代理：{activeConfig?.proxyType === 'socks' ? 'SOCKS5' : 'HTTP'}://{activeConfig?.host}:{activeConfig.proxyPort || '未设置'}
+              </span>
+            {/if}
           {:else}
             <!-- Multiple Configs: With dropdown -->
             <div class="flex items-center gap-1.5">
               <span class="text-base">{activeConfig.emoji}</span>
               <span class="text-sm font-bold text-[var(--color-text)] truncate">{activeConfig.name}</span>
+              
+              <!-- 配置类型标签 -->
+              {#if activeConfig.configType === 'proxy-only'}
+                <span class="px-1.5 py-0.5 text-[10px] font-medium bg-[var(--color-warning)]/10 text-[var(--color-warning)] rounded leading-none border border-[var(--color-warning)]/20 shrink-0">
+                  纯代理
+                </span>
+              {:else}
+                <span class="px-1.5 py-0.5 text-[10px] font-medium bg-[var(--color-primary)]/10 text-[var(--color-primary)] rounded leading-none border border-[var(--color-primary)]/20 shrink-0">
+                  API
+                </span>
+              {/if}
+              
               {#if getVersionBadge()}
                 <span class="px-1.5 py-0.5 text-[10px] bg-[var(--color-primary)]/10 text-[var(--color-primary)] rounded-full font-medium shrink-0">
                   {getVersionBadge()}
                 </span>
               {/if}
             </div>
-            <span class="text-xs text-[var(--color-text-muted)] truncate">
-              API: {activeConfig.host}:{activeConfig.port}
-              {#if version?.version}
-                <span class="ml-1">{version.version}</span>
-              {/if}
-            </span>
-            <span class="text-xs text-[var(--color-text-secondary)] truncate">
-              代理：{activeConfig?.proxyType === 'socks' ? 'SOCKS5' : 'HTTP'}://{activeConfig?.host}:{proxyPort ?? '...'}
-            </span>
+            
+            <!-- API 类型显示 API 端口和版本 -->
+            {#if activeConfig.configType === 'api'}
+              <span class="text-xs text-[var(--color-text-muted)] truncate">
+                API: {activeConfig.host}:{activeConfig.port}
+                {#if version?.version}
+                  <span class="ml-1">{version.version}</span>
+                {/if}
+              </span>
+              <span class="text-xs text-[var(--color-text-secondary)] truncate">
+                代理：{activeConfig?.proxyType === 'socks' ? 'SOCKS5' : 'HTTP'}://{activeConfig?.host}:{proxyPort ?? '...'}
+              </span>
+            {:else}
+              <!-- 纯代理类型只显示代理端口 -->
+              <span class="text-xs text-[var(--color-text-secondary)] truncate">
+                代理：{activeConfig?.proxyType === 'socks' ? 'SOCKS5' : 'HTTP'}://{activeConfig?.host}:{activeConfig.proxyPort || '未设置'}
+              </span>
+            {/if}
           {/if}
         {:else}
           <span class="text-sm font-bold text-[var(--color-text)]">No Config</span>

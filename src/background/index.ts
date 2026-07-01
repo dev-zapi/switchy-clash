@@ -74,10 +74,12 @@ async function enableProxy(): Promise<{ success: boolean; error?: string }> {
     return { success: false, error: 'No active configuration' };
   }
 
-  // Check host permission before connecting
-  const hasPermission = await hasHostPermission(config.host);
-  if (!hasPermission) {
-    return { success: false, error: `No permission to access ${config.host}. Please grant access in the extension settings.` };
+  // Check host permission before connecting (only for API mode)
+  if (config.configType !== 'proxy-only') {
+    const hasPermission = await hasHostPermission(config.host);
+    if (!hasPermission) {
+      return { success: false, error: `No permission to access ${config.host}. Please grant access in the extension settings.` };
+    }
   }
 
   try {
@@ -104,12 +106,18 @@ async function enableProxy(): Promise<{ success: boolean; error?: string }> {
       await storage.updateConfig(config.id, { status: 'available', lastUsed: Date.now() });
     }
 
-    // Add all config hosts to bypass list so API traffic
-    // is not routed through the proxy
-    const configs = await storage.getConfigs();
-    const allHosts = configs.map(c => c.host);
-    const baseBypassList = await storage.getBypassList();
-    const bypassList = [...new Set([...baseBypassList, ...allHosts])];
+    // Add API hosts to bypass list so API traffic is not routed through the proxy
+    // Only needed for API mode (proxy-only mode doesn't access API)
+    let bypassList: string[];
+    if (config.configType === 'proxy-only') {
+      const baseBypassList = await storage.getBypassList();
+      bypassList = [...baseBypassList];
+    } else {
+      const configs = await storage.getConfigs();
+      const allHosts = configs.map(c => c.host);
+      const baseBypassList = await storage.getBypassList();
+      bypassList = [...new Set([...baseBypassList, ...allHosts])];
+    }
     await ProxyService.enable(config.host, proxyPort, config.proxyType, bypassList);
     await storage.setProxyEnabled(true);
     await updateIcon(true, false, config.emoji);
@@ -174,7 +182,9 @@ async function autoSwitch(): Promise<void> {
   // Priority 1: Check if active config is still available
   if (activeId) {
     const activeConfig = configs.find((c) => c.id === activeId);
-    if (activeConfig && await hasHostPermission(activeConfig.host)) {
+    // Skip permission check for proxy-only mode (doesn't need API access)
+    const shouldCheckPermission = activeConfig && activeConfig.configType !== 'proxy-only';
+    if (activeConfig && (!shouldCheckPermission || await hasHostPermission(activeConfig.host))) {
       let isAvailable = false;
       
       if (activeConfig.configType === 'proxy-only') {
@@ -206,7 +216,8 @@ async function autoSwitch(): Promise<void> {
   // Priority 2: Try last used
   const sorted = [...configs].sort((a, b) => b.lastUsed - a.lastUsed);
   for (const config of sorted) {
-    if (!(await hasHostPermission(config.host))) continue;
+    // Skip permission check for proxy-only mode (doesn't need API access)
+    if (config.configType !== 'proxy-only' && !(await hasHostPermission(config.host))) continue;
     
     let status: 'available' | 'unavailable' | 'useless' = 'unavailable';
     

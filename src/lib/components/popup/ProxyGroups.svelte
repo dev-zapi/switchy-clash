@@ -23,12 +23,20 @@
     onToggleExpanded?: (groupName: string) => void;
   } = $props();
 
-  function getNodeLatency(nodeName: string): number | null {
+  function getNodeLatency(nodeName: string, visited = new Set<string>()): number | null {
+    if (visited.has(nodeName)) return null;
+    visited.add(nodeName);
     const node = allProxies[nodeName];
     if (!node) return null;
     const history = node.history || [];
-    if (history.length === 0) return null;
-    return history[history.length - 1].delay;
+    if (history.length > 0) {
+      const delay = history[history.length - 1].delay;
+      if (delay > 0) return delay;
+    }
+    if (node.now && !visited.has(node.now)) {
+      return getNodeLatency(node.now, visited);
+    }
+    return null;
   }
 
   function getGroupNodeCount(group: ProxyGroup): { available: number; total: number } {
